@@ -76,7 +76,15 @@
     .btn-secondary:hover { border-color: #cbd5e1; background: var(--surface-2); }
     .btn-ghost { background: transparent; color: var(--text); border-color: transparent; }
     .btn-ghost:hover { background: var(--surface-2); }
+    .btn-ad-link { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+    .btn-ad-link:hover { background: #dbeafe; border-color: #93c5fd; }
     .btn-small { padding: 6px 12px; font-size: 12px; }
+    .cb-score-chip { font-size: 11px; }
+    .cb-good { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+    .cb-mid  { background: #fef9c3; color: #a16207; border-color: #fde68a; }
+    .cb-low  { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+    .prop-ad-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #2563eb; text-decoration: none; padding: 2px 8px; border-radius: 999px; background: #eff6ff; border: 1px solid #bfdbfe; }
+    .prop-ad-link:hover { background: #dbeafe; }
 
     /* ── Container ── */
     .container { max-width: var(--max); margin: 0 auto; padding: 24px 28px 64px; }
@@ -117,12 +125,24 @@
     }
     .toolbar input[type=search],
     .toolbar select {
-      padding: 8px 12px; border: 1px solid var(--line);
+      padding: 8px 12px 8px 12px; border: 1px solid var(--line);
       border-radius: var(--radius-sm); font-size: 13px; background: var(--surface-2);
-      color: var(--text); min-width: 0;
+      color: var(--text); min-width: 0; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .toolbar input[type=search]:focus,
+    .toolbar select:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
     }
     .toolbar input[type=search] { flex: 1 1 180px; }
-    .toolbar select { flex: 0 0 auto; }
+    .toolbar select {
+      flex: 0 0 auto;
+      appearance: none; -webkit-appearance: none;
+      padding-right: 30px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
     .toolbar-end { margin-left: auto; display: flex; gap: 8px; align-items: center; }
     .result-count { font-size: 12px; color: var(--muted); font-weight: 500; }
 
@@ -313,6 +333,16 @@
       padding: 9px 12px; border: 1px solid var(--line);
       border-radius: var(--radius-sm); font-size: 13px;
       background: var(--surface-2); color: var(--text); width: 100%;
+      appearance: none; -webkit-appearance: none; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field select {
+      padding-right: 30px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+    }
+    .field input[type=date] {
+      background-image: none;
     }
     .field input:focus, .field select:focus, .field textarea:focus {
       outline: none; border-color: var(--primary);
@@ -474,12 +504,13 @@
       <option value="alto">Risco alto</option>
     </select>
     <select id="sortBy">
-      <option value="">Ordenar: padrão</option>
-      <option value="score-desc">Score ↓ melhor</option>
-      <option value="score-asc">Score ↑ pior</option>
-      <option value="cost-asc">Custo ↑</option>
-      <option value="cost-desc">Custo ↓</option>
+      <option value="cb-desc" selected>CB Score ↓ melhor</option>
+      <option value="score-desc">Score visita ↓ melhor</option>
+      <option value="score-asc">Score visita ↑ pior</option>
+      <option value="cost-asc">Custo ↑ menor</option>
+      <option value="cost-desc">Custo ↓ maior</option>
       <option value="date-desc">Visita mais recente</option>
+      <option value="verdict">Veredicto</option>
     </select>
     <div class="toolbar-end">
       <span class="result-count" id="resultCount"></span>
@@ -501,16 +532,21 @@
         <p id="modalSubtitle">Preencha os dados observados durante a visita.</p>
         <div class="modal-head-meta" id="modalHeadMeta"></div>
       </div>
-      <button class="modal-close-btn" id="btnCloseModal" aria-label="Fechar">&times;</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <a id="modalAdLink" href="#" target="_blank" rel="noopener" class="btn btn-ad-link btn-small" style="display:none">🔗 Ver anúncio</a>
+        <button class="modal-close-btn" id="btnCloseModal" aria-label="Fechar">&times;</button>
+      </div>
     </div>
     <div class="modal-body">
       <form id="visitForm">
         <input type="hidden" id="fId" />
 
         <div class="form-grid">
+
+          <!-- ─ Visita ─ -->
           <div class="form-section span-3">
             <div class="form-section-line"></div>
-            <span class="form-section-label">Informações da visita</span>
+            <span class="form-section-label">📅 Informações da visita</span>
             <div class="form-section-line"></div>
           </div>
 
@@ -548,17 +584,21 @@
               </label>
             </div>
           </div>
+
           <div class="field">
-            <label>Nota geral (1–5)</label>
+            <label>Nota geral da visita (1–5)</label>
             <div class="score-row" id="scoreVisit"></div>
+            <div class="score-hint">1 = muito ruim · 5 = excelente</div>
           </div>
-          <div class="field">
-            <!-- spacer -->
+          <div class="field span-2">
+            <label for="fVisitNotes">Anotações rápidas</label>
+            <textarea id="fVisitNotes" style="min-height:58px" placeholder="Impressão geral, pontos de atenção…"></textarea>
           </div>
 
+          <!-- ─ Condições ─ -->
           <div class="form-section span-3">
             <div class="form-section-line"></div>
-            <span class="form-section-label">Condições do imóvel</span>
+            <span class="form-section-label">🏗 Condições do imóvel</span>
             <div class="form-section-line"></div>
           </div>
 
@@ -580,7 +620,6 @@
               <button type="button" class="flag-btn" data-value="to_review">🟡 A confirmar</button>
             </div>
           </div>
-          </div>
           <div class="field">
             <label for="fRepairNeeded">Reparos necessários</label>
             <select id="fRepairNeeded">
@@ -592,23 +631,24 @@
               <option value="to_review">A avaliar</option>
             </select>
           </div>
-          <div class="field">
-            <label for="fEstimatedRepairCost">Custo estimado de reparos (R$)</label>
-            <input type="number" id="fEstimatedRepairCost" min="0" placeholder="0" />
-          </div>
 
           <div class="field">
-            <label>Pressão d'água (1–5)</label>
+            <label>Pressão d’água (1–5)</label>
             <div class="score-row" id="scoreWater"></div>
           </div>
           <div class="field">
-            <label>Elétrica (1–5)</label>
+            <label>Instalação elétrica (1–5)</label>
             <div class="score-row" id="scoreElectrical"></div>
           </div>
+          <div class="field">
+            <label for="fEstimatedRepairCost">Custo estimado reparos (R$)</label>
+            <input type="number" id="fEstimatedRepairCost" min="0" placeholder="0" />
+          </div>
 
+          <!-- ─ Bairro ─ -->
           <div class="form-section span-3">
             <div class="form-section-line"></div>
-            <span class="form-section-label">Scores técnicos</span>
+            <span class="form-section-label">📍 Bairro e entorno</span>
             <div class="form-section-line"></div>
           </div>
 
@@ -631,21 +671,6 @@
             <div class="score-row" id="scoreGarage"></div>
           </div>
 
-          <div class="form-section span-3">
-            <div class="form-section-line"></div>
-            <span class="form-section-label">Localização e entorno</span>
-            <div class="form-section-line"></div>
-          </div>
-
-          <div class="form-section span-3">
-            <div class="form-section-line"></div>
-            <span class="form-section-label">Observações</span>
-            <div class="form-section-line"></div>
-          </div>
-          <div class="field span-3">
-            <label for="fVisitNotes">Anotações da visita</label>
-            <textarea id="fVisitNotes" placeholder="O que chamou atenção, pontos positivos, negativos…"></textarea>
-          </div>
         </div>
       </form>
     </div>
@@ -661,7 +686,6 @@
 
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
-
 <script>
   'use strict';
 
@@ -749,6 +773,24 @@
   }
 
   function displayCost(p) { return getRealMonthlyCost(p) || getTotal(p); }
+
+  function cbScore(p) {
+    const total = displayCost(p);
+    if (!total || total <= 0) return null;
+    const area    = Number(p.area)         || 0;
+    const rooms   = Number(p.rooms)        || 0;
+    const baths   = Number(p.bathrooms)    || 0;
+    const parking = Number(p.parkingSpots) || 0;
+    if (!area && !rooms) return null;
+    return ((area * 10) + (rooms * 80) + (baths * 45) + (parking * 30)) / total * 100;
+  }
+
+  function cbScorePill(p) {
+    const s = cbScore(p);
+    if (s === null) return '';
+    const cls = s >= 50 ? 'cb-good' : s >= 25 ? 'cb-mid' : 'cb-low';
+    return `<span class="chip cb-score-chip ${cls}">📊 ${s.toFixed(1)} pts/R$100</span>`;
+  }
 
   function verdictBadge(v) {
     if (!v) return '';
@@ -901,9 +943,19 @@
     const s = compositeScore(partial);
     const el = document.getElementById("modalScoreSummary");
     if (!el) return;
+    const p = editingId ? properties.find(x => x.id === editingId) : null;
+    const cb = p ? cbScore(p) : null;
+    let parts = [];
     if (s !== null) {
       const cls = s >= 4.5 ? 'var(--good)' : s >= 3.5 ? '#84cc16' : s >= 2.5 ? 'var(--warning)' : 'var(--danger)';
-      el.innerHTML = `Score composto: <strong style="color:${cls}">${s.toFixed(1)} / 5</strong>`;
+      parts.push(`Visita: <strong style="color:${cls}">${s.toFixed(1)}/5</strong>`);
+    }
+    if (cb !== null) {
+      const ccls = cb >= 50 ? 'var(--good)' : cb >= 25 ? 'var(--warning)' : 'var(--danger)';
+      parts.push(`CB Score: <strong style="color:${ccls}">${cb.toFixed(1)} pts/R$100</strong>`);
+    }
+    if (parts.length) {
+      el.innerHTML = parts.join(' &nbsp;·&nbsp; ');
     } else {
       el.textContent = "Preencha scores para ver avaliação composta";
     }
@@ -939,11 +991,12 @@
       if (so === 'score-asc')  return (compositeScore(a) ?? 99) - (compositeScore(b) ?? 99);
       if (so === 'cost-asc')   return (displayCost(a) ?? 9e9) - (displayCost(b) ?? 9e9);
       if (so === 'cost-desc')  return (displayCost(b) ?? 0) - (displayCost(a) ?? 0);
+      if (so === 'cb-desc' || so === '') return (cbScore(b) ?? 0) - (cbScore(a) ?? 0);
       if (so === 'date-desc') {
         const da = a.visitDate || '0', db = b.visitDate || '0';
         return db.localeCompare(da);
       }
-      // Default: verdict weight then title
+      // verdict: weight then title
       const wa = VERDICT_WEIGHT[a.postVisitVerdict] ?? 5;
       const wb = VERDICT_WEIGHT[b.postVisitVerdict] ?? 5;
       return wa !== wb ? wa - wb : (a.title||'').localeCompare(b.title||'', 'pt');
@@ -1072,6 +1125,8 @@
               ${decisionBadge(p)}
               ${riskBadge(p)}
               ${specs}
+              ${cbScorePill(p)}
+              ${p.url ? `<a href="${p.url}" target="_blank" rel="noopener" class="prop-ad-link">🔗 anúncio</a>` : ''}
             </div>
             ${visitDetail}
           </div>
@@ -1101,6 +1156,13 @@
     document.getElementById("modalTitle").textContent    = p.title || "Avaliar visita";
     document.getElementById("modalSubtitle").textContent =
       [p.neighborhood, p.city].filter(Boolean).join(", ") || "Avaliação de visita";
+
+    // Ad link
+    const adLink = document.getElementById('modalAdLink');
+    if (adLink) {
+      if (p.url) { adLink.href = p.url; adLink.style.display = 'inline-flex'; }
+      else { adLink.style.display = 'none'; }
+    }
 
     // Header meta badges
     const meta = document.getElementById("modalHeadMeta");

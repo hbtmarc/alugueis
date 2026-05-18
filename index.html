@@ -365,6 +365,19 @@
     }
     .btn-ghost:hover { opacity: 1; color: var(--text); border-color: #c5cde0; }
 
+    .btn-visits {
+      background: #f0fdf4; color: #16a34a;
+      border: 1px solid #bbf7d0;
+      position: relative;
+    }
+    .btn-visits:hover { background: #dcfce7; border-color: #86efac; }
+    .visits-badge {
+      display: inline-flex !important; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; padding: 0 5px;
+      border-radius: 999px; background: #dc2626; color: #fff;
+      font-size: 10px; font-weight: 700; line-height: 1;
+    }
+
     .btn-danger {
       background: #fef2f2;
       color: var(--danger);
@@ -1295,7 +1308,11 @@
         </div>
 
         <div class="nav-actions">
-          <a href="visitas.html" class="btn btn-ghost"><span class="btn-label">🚪 Visitas</span></a>
+          <a href="visitas.html" class="btn btn-visits" id="btnVisits">
+            <span>🚪</span>
+            <span class="btn-label">Visitas</span>
+            <span class="visits-badge" id="visitsBadge" style="display:none"></span>
+          </a>
           <button class="btn btn-secondary" id="btnExportCsv"><span class="btn-label">Exportar CSV</span></button>
           <button class="btn btn-ghost" id="btnExportJson"><span class="btn-label">Exportar JSON</span></button>
           <button class="btn btn-primary" id="btnNew"><span class="btn-label">Adicionar imóvel</span></button>
@@ -2144,6 +2161,19 @@
       renderTable(filteredProperties);
       renderMobileCards(filteredProperties);
       updateSortIndicators();
+      updateVisitsBadge();
+    }
+
+    function updateVisitsBadge() {
+      const badge = document.getElementById('visitsBadge');
+      if (!badge) return;
+      const pending = properties.filter(p => !p.visitDate).length;
+      if (pending > 0) {
+        badge.textContent = pending;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
     }
 
     function populateCityFilter() {
