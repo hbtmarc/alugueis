@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitas — Comparativo de Aluguéis</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🚪</text></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    :root {
+      --bg: #f0f2f8;
+      --surface: #ffffff;
+      --surface-2: #f7f9fc;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e4e8f0;
+      --primary: #2563eb;
+      --primary-2: #eff6ff;
+      --good: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow: 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --max: 1200px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    html, body { overflow-x: hidden; margin: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner {
+      max-width: var(--max); margin: 0 auto;
+      padding: 12px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: grid; place-items: center; font-size: 18px;
+      background: linear-gradient(135deg, #059669, #0891b2);
+      color: white; box-shadow: 0 4px 12px rgba(5,150,105,0.30); flex: 0 0 auto;
+    }
+    .brand-text h1 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-text p  { margin: 0; font-size: 11px; color: var(--muted); }
+    .nav-actions { display: flex; flex-wrap: nowrap; gap: 8px; flex-shrink: 0; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid transparent; transition: all 0.15s; white-space: nowrap;
+      text-decoration: none; line-height: 1;
+    }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+    .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--line); box-shadow: var(--shadow-sm); }
+    .btn-secondary:hover { border-color: #cbd5e1; background: var(--surface-2); }
+    .btn-ghost { background: transparent; color: var(--text); border-color: transparent; }
+    .btn-ghost:hover { background: var(--surface-2); }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+
+    /* ── Container ── */
+    .container { max-width: var(--max); margin: 0 auto; padding: 24px 28px 64px; }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      padding: 16px 18px; position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--line);
+    }
+    .stat-card.accent-primary::before { background: var(--primary); }
+    .stat-card.accent-good::before    { background: var(--good); }
+    .stat-card.accent-warning::before { background: var(--warning); }
+    .stat-card.accent-danger::before  { background: var(--danger); }
+    .stat-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; margin-top: 6px; }
+    .stat-card.accent-primary .stat-value { color: var(--primary); }
+    .stat-card.accent-good    .stat-value { color: var(--good); }
+    .stat-card.accent-warning .stat-value { color: var(--warning); }
+    .stat-card.accent-danger  .stat-value { color: var(--danger); }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      margin-bottom: 18px;
+    }
+    .toolbar input[type=search],
+    .toolbar select {
+      padding: 8px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-sm); font-size: 13px; background: var(--surface-2);
+      color: var(--text); min-width: 0;
+    }
+    .toolbar input[type=search] { flex: 1 1 180px; }
+    .toolbar select { flex: 0 0 auto; }
+    .toolbar-end { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .result-count { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    /* ── Property cards ── */
+    .prop-list { display: flex; flex-direction: column; gap: 14px; }
+    .prop-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      overflow: hidden; transition: box-shadow 0.15s, border-color 0.15s;
+      position: relative;
+    }
+    .prop-card:hover { box-shadow: var(--shadow); border-color: #c7d2e1; }
+    /* verdict stripe */
+    .prop-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 4px; background: var(--line);
+    }
+    .prop-card.verdict-approve::before   { background: var(--good); }
+    .prop-card.verdict-finalist::before  { background: var(--primary); }
+    .prop-card.verdict-negotiate::before { background: var(--warning); }
+    .prop-card.verdict-reject::before    { background: var(--danger); }
+    .prop-card.verdict-to_review::before { background: #9ca3af; }
+
+    .prop-main {
+      display: flex; align-items: stretch;
+      padding: 18px 20px 18px 24px; gap: 0;
+    }
+    .prop-body { flex: 1; min-width: 0; }
+    .prop-head-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+    .prop-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin: 0; flex: 1; min-width: 0; }
+    .prop-location { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+    .prop-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 6px;
+      font-size: 11px; font-weight: 500;
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--line);
+    }
+
+    /* visit details row */
+    .prop-visit-row {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start;
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+    }
+    .score-group { display: flex; flex-direction: column; gap: 4px; }
+    .score-group-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .score-pips { display: flex; gap: 3px; }
+    .pip { width: 20px; height: 8px; border-radius: 3px; background: var(--line); }
+    .pip.on-1 { background: var(--danger); }
+    .pip.on-2 { background: #f97316; }
+    .pip.on-3 { background: var(--warning); }
+    .pip.on-4 { background: #84cc16; }
+    .pip.on-5 { background: var(--good); }
+
+    .flag { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; }
+    .flag-bad  { color: var(--danger); }
+    .flag-ok   { color: var(--good); }
+    .flag-warn { color: var(--warning); }
+
+    .visit-notes-preview {
+      margin-top: 10px; font-size: 12px; color: var(--muted);
+      font-style: italic; line-height: 1.5;
+      padding: 8px 10px; background: var(--surface-2); border-radius: 8px;
+      border-left: 3px solid var(--line);
+    }
+
+    .prop-aside {
+      display: flex; flex-direction: column;
+      align-items: flex-end; justify-content: space-between;
+      gap: 10px; flex-shrink: 0;
+      padding-left: 18px; border-left: 1px solid var(--line); min-width: 155px;
+    }
+    .cost-block { text-align: right; }
+    .cost-main  { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+    .cost-sub   { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .cost-breakdown { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+
+    /* score circle */
+    .score-circle {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 15px; font-weight: 800; letter-spacing: -0.02em;
+      border: 2px solid var(--line); flex-shrink: 0;
+    }
+    .score-circle.sc-2    { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .score-circle.sc-3    { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .score-circle.sc-4    { background: #ecfdf5; color: var(--good); border-color: #a7f3d0; }
+    .score-circle.sc-5    { background: #d1fae5; color: #047857; border-color: #6ee7b7; }
+    .score-circle.sc-none { background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 600; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .badge-neutral { background: var(--surface-2); color: var(--muted); border-color: var(--line); }
+    .badge-good    { background: #ecfdf5; color: var(--good); border-color: #a7f3d0; }
+    .badge-warning { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .badge-danger  { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .badge-primary { background: var(--primary-2); color: var(--primary); border-color: rgba(37,99,235,0.2); }
+    .badge.dec-favorito    { background: #eff6ff; color: var(--primary); border-color: #bfdbfe; }
+    .badge.dec-visita      { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .badge.dec-descartado  { background: #fef2f2; color: var(--danger); border-color: #fecaca; text-decoration:line-through; }
+    .badge.dec-aprovado    { background: #ecfdf5; color: var(--good); border-color: #6ee7b7; font-weight:700; }
+    .badge.dec-analisando  { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .badge.dec-interessante{ background: #ecfdf5; color: var(--good); border-color: #6ee7b7; }
+    .badge.dec-finalista   { background: var(--primary-2); color: var(--primary); border-color: #bfdbfe; font-weight:700; }
+    .badge.dec-negociando  { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .badge.dec-reprovado   { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .badge.risk-baixo { background: #ecfdf5; color: var(--good); border-color: #a7f3d0; }
+    .badge.risk-medio { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .badge.risk-alto  { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .badge.verd-approve   { background: #ecfdf5; color: var(--good); border-color: #a7f3d0; }
+    .badge.verd-finalist  { background: var(--primary-2); color: var(--primary); border-color: #bfdbfe; font-weight:700; }
+    .badge.verd-negotiate { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .badge.verd-reject    { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .badge.verd-to_review { background: var(--surface-2); color: var(--muted); border-color: var(--line); }
+
+    /* ── Empty ── */
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+    .empty-icon { font-size: 44px; display: block; margin-bottom: 12px; }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 999; display: flex; flex-direction: column; gap: 8px; align-items: center;
+      pointer-events: none;
+    }
+    .toast {
+      background: #1f2937; color: #f9fafb;
+      padding: 10px 20px; border-radius: 999px;
+      font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(17,24,39,0.60);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.is-open { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 780px; max-height: 92vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 16px; padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--line); flex-shrink: 0;
+      background: var(--surface-2);
+    }
+    .modal-head-info { flex: 1; min-width: 0; }
+    .modal-head-info h3 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .modal-head-info p  { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .modal-head-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .modal-body { overflow-y: auto; padding: 22px 24px; flex: 1; }
+    .modal-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px; padding: 14px 24px;
+      border-top: 1px solid var(--line); flex-shrink: 0; background: var(--surface-2);
+    }
+    .modal-foot-left  { font-size: 11px; color: var(--muted); }
+    .modal-foot-right { display: flex; gap: 8px; }
+    .modal-close-btn {
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border: none; border-radius: 8px;
+      background: transparent; color: var(--muted);
+      font-size: 22px; line-height: 1; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close-btn:hover { background: var(--line); color: var(--text); }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .field input, .field select, .field textarea {
+      padding: 9px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-sm); font-size: 13px;
+      background: var(--surface-2); color: var(--text); width: 100%;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
+    .form-section {
+      grid-column: span 3;
+      display: flex; align-items: center; gap: 10px;
+      margin: 8px 0 4px;
+    }
+    .form-section-line  { flex: 1; height: 1px; background: var(--line); }
+    .form-section-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
+    }
+
+    /* Score buttons */
+    .score-row { display: flex; gap: 6px; }
+    .score-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 2px solid var(--line); background: var(--surface-2);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      display: grid; place-items: center; transition: all 0.12s; color: var(--muted);
+    }
+    .score-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .score-btn.active { border-color: var(--primary); background: var(--primary-2); color: var(--primary); }
+    .score-hint { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+    /* Verdict radio cards */
+    .verdict-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .verdict-opt {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: var(--radius-sm);
+      border: 2px solid var(--line); background: var(--surface-2);
+      cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted);
+      transition: all 0.12s; user-select: none;
+    }
+    .verdict-opt input[type=radio] { display: none; }
+    .verdict-opt:has(input:checked).verdict-approve   { background: #ecfdf5; color: var(--good); border-color: #6ee7b7; }
+    .verdict-opt:has(input:checked).verdict-finalist  { background: var(--primary-2); color: var(--primary); border-color: #93c5fd; }
+    .verdict-opt:has(input:checked).verdict-negotiate { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+    .verdict-opt:has(input:checked).verdict-reject    { background: #fef2f2; color: var(--danger); border-color: #fca5a5; }
+    .verdict-opt:has(input:checked).verdict-to_review { background: #f3f4f6; color: #4b5563; border-color: #9ca3af; }
+
+    /* Flag toggle buttons */
+    .flag-row { display: flex; gap: 6px; }
+    .flag-btn {
+      flex: 1; padding: 8px 4px; border-radius: 8px;
+      border: 2px solid var(--line); background: var(--surface-2);
+      font-size: 11px; font-weight: 600; cursor: pointer; color: var(--muted);
+      text-align: center; transition: all 0.12s;
+    }
+    .flag-btn:hover { border-color: #9ca3af; }
+    .flag-btn.active-no  { background: #ecfdf5; color: var(--good); border-color: #6ee7b7; }
+    .flag-btn.active-yes { background: #fef2f2; color: var(--danger); border-color: #fca5a5; }
+    .flag-btn.active-rev { background: #fffbeb; color: var(--warning); border-color: #fde68a; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .topbar-inner { padding: 10px 16px; }
+      .container { padding: 16px 14px 52px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .prop-main { flex-direction: column; padding: 16px 16px 16px 20px; }
+      .prop-aside { flex-direction: row; border-left: none; border-top: 1px solid var(--line); padding: 12px 0 0; min-width: unset; }
+      .cost-block { text-align: left; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar input[type=search] { width: 100%; }
+      .toolbar-end { margin-left: 0; justify-content: flex-end; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .span-3 { grid-column: span 2; }
+      .form-section { grid-column: span 2; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .span-2, .span-3 { grid-column: span 1; }
+      .form-section { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-icon">🚪</div>
+      <div class="brand-text">
+        <h1>Avaliação de Visitas</h1>
+        <p>Registo de visitas e parecer final</p>
+      </div>
+    </div>
+    <nav class="nav-actions">
+      <a href="index.html" class="btn btn-secondary btn-small">← Comparativo</a>
+      <button class="btn btn-secondary btn-small" id="btnExportCsv">Exportar CSV</button>
+      <button class="btn btn-secondary btn-small" id="btnExportJson">Exportar JSON</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<main class="container">
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub" id="statTotalSub">imóveis cadastrados</div>
+    </div>
+    <div class="stat-card accent-primary">
+      <div class="stat-label">Visitados</div>
+      <div class="stat-value" id="statVisited">—</div>
+      <div class="stat-sub" id="statVisitedSub">aguardando visita</div>
+    </div>
+    <div class="stat-card accent-warning">
+      <div class="stat-label">Pendentes</div>
+      <div class="stat-value" id="statPending">—</div>
+      <div class="stat-sub">sem avaliação registada</div>
+    </div>
+    <div class="stat-card accent-good">
+      <div class="stat-label">Finalistas</div>
+      <div class="stat-value" id="statFinalist">—</div>
+      <div class="stat-sub">⭐ + aprovados</div>
+    </div>
+    <div class="stat-card accent-danger">
+      <div class="stat-label">Reprovados</div>
+      <div class="stat-value" id="statRejected">—</div>
+      <div class="stat-sub">descartados pós-visita</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="search" id="searchInput" placeholder="Buscar por título, cidade, bairro…" />
+    <select id="filterVisited">
+      <option value="">Todos</option>
+      <option value="visited">Visitados</option>
+      <option value="pending">Não visitados</option>
+    </select>
+    <select id="filterVerdict">
+      <option value="">Qualquer veredicto</option>
+      <option value="approve">Aprovado</option>
+      <option value="finalist">Finalista</option>
+      <option value="negotiate">Negociando</option>
+      <option value="reject">Reprovado</option>
+      <option value="to_review">A conferir</option>
+    </select>
+    <select id="filterRisk">
+      <option value="">Qualquer risco</option>
+      <option value="baixo">Risco baixo</option>
+      <option value="medio">Risco médio</option>
+      <option value="alto">Risco alto</option>
+    </select>
+    <select id="sortBy">
+      <option value="">Ordenar: padrão</option>
+      <option value="score-desc">Score ↓ melhor</option>
+      <option value="score-asc">Score ↑ pior</option>
+      <option value="cost-asc">Custo ↑</option>
+      <option value="cost-desc">Custo ↓</option>
+      <option value="date-desc">Visita mais recente</option>
+    </select>
+    <div class="toolbar-end">
+      <span class="result-count" id="resultCount"></span>
+      <button class="btn btn-ghost btn-small" id="btnClear">Limpar</button>
+    </div>
+  </div>
+
+  <!-- Property list -->
+  <div class="prop-list" id="propList"></div>
+
+</main>
+
+<!-- ── Visit modal ── -->
+<div class="modal-overlay" id="visitModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <h3 id="modalTitle">Avaliar visita</h3>
+        <p id="modalSubtitle">Preencha os dados observados durante a visita.</p>
+        <div class="modal-head-meta" id="modalHeadMeta"></div>
+      </div>
+      <button class="modal-close-btn" id="btnCloseModal" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="visitForm">
+        <input type="hidden" id="fId" />
+
+        <div class="form-grid">
+          <div class="form-section span-3">
+            <div class="form-section-line"></div>
+            <span class="form-section-label">Informações da visita</span>
+            <div class="form-section-line"></div>
+          </div>
+
+          <div class="field">
+            <label for="fVisitDate">Data da visita</label>
+            <input type="date" id="fVisitDate" />
+          </div>
+          <div class="field span-2">
+            <label for="fVisitedBy">Visitado por</label>
+            <input type="text" id="fVisitedBy" placeholder="Nome(s) de quem visitou" />
+          </div>
+
+          <div class="field span-3">
+            <label>Veredicto pós-visita</label>
+            <div class="verdict-row">
+              <label class="verdict-opt verdict-finalist">
+                <input type="radio" name="fPostVisitVerdict" value="finalist" />
+                ⭐ Finalista
+              </label>
+              <label class="verdict-opt verdict-approve">
+                <input type="radio" name="fPostVisitVerdict" value="approve" />
+                ✅ Aprovado
+              </label>
+              <label class="verdict-opt verdict-negotiate">
+                <input type="radio" name="fPostVisitVerdict" value="negotiate" />
+                🤝 Negociando
+              </label>
+              <label class="verdict-opt verdict-reject">
+                <input type="radio" name="fPostVisitVerdict" value="reject" />
+                ❌ Reprovado
+              </label>
+              <label class="verdict-opt verdict-to_review">
+                <input type="radio" name="fPostVisitVerdict" value="to_review" />
+                🔍 A conferir
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nota geral (1–5)</label>
+            <div class="score-row" id="scoreVisit"></div>
+          </div>
+          <div class="field">
+            <!-- spacer -->
+          </div>
+
+          <div class="form-section span-3">
+            <div class="form-section-line"></div>
+            <span class="form-section-label">Condições do imóvel</span>
+            <div class="form-section-line"></div>
+          </div>
+
+          <div class="field">
+            <label>Umidade / infiltração</label>
+            <input type="hidden" id="fMoistureIssue" />
+            <div class="flag-row" data-target="fMoistureIssue">
+              <button type="button" class="flag-btn" data-value="no">🟢 Não há</button>
+              <button type="button" class="flag-btn" data-value="yes">🔴 Sim, há</button>
+              <button type="button" class="flag-btn" data-value="to_review">🟡 A confirmar</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Cheiro de mofo</label>
+            <input type="hidden" id="fMoldSmell" />
+            <div class="flag-row" data-target="fMoldSmell">
+              <button type="button" class="flag-btn" data-value="no">🟢 Não</button>
+              <button type="button" class="flag-btn" data-value="yes">🔴 Sim</button>
+              <button type="button" class="flag-btn" data-value="to_review">🟡 A confirmar</button>
+            </div>
+          </div>
+          </div>
+          <div class="field">
+            <label for="fRepairNeeded">Reparos necessários</label>
+            <select id="fRepairNeeded">
+              <option value="">—</option>
+              <option value="none">Nenhum</option>
+              <option value="minor">Pequenos</option>
+              <option value="medium">Médios</option>
+              <option value="critical">Críticos</option>
+              <option value="to_review">A avaliar</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fEstimatedRepairCost">Custo estimado de reparos (R$)</label>
+            <input type="number" id="fEstimatedRepairCost" min="0" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <label>Pressão d'água (1–5)</label>
+            <div class="score-row" id="scoreWater"></div>
+          </div>
+          <div class="field">
+            <label>Elétrica (1–5)</label>
+            <div class="score-row" id="scoreElectrical"></div>
+          </div>
+
+          <div class="form-section span-3">
+            <div class="form-section-line"></div>
+            <span class="form-section-label">Scores técnicos</span>
+            <div class="form-section-line"></div>
+          </div>
+
+          <div class="field">
+            <label for="fNoiseLevel">Nível de ruído</label>
+            <select id="fNoiseLevel">
+              <option value="">—</option>
+              <option value="low">Baixo</option>
+              <option value="medium">Médio</option>
+              <option value="high">Alto</option>
+              <option value="to_review">A confirmar</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Segurança do bairro (1–5)</label>
+            <div class="score-row" id="scoreSafety"></div>
+          </div>
+          <div class="field">
+            <label>Usabilidade da garagem (1–5)</label>
+            <div class="score-row" id="scoreGarage"></div>
+          </div>
+
+          <div class="form-section span-3">
+            <div class="form-section-line"></div>
+            <span class="form-section-label">Localização e entorno</span>
+            <div class="form-section-line"></div>
+          </div>
+
+          <div class="form-section span-3">
+            <div class="form-section-line"></div>
+            <span class="form-section-label">Observações</span>
+            <div class="form-section-line"></div>
+          </div>
+          <div class="field span-3">
+            <label for="fVisitNotes">Anotações da visita</label>
+            <textarea id="fVisitNotes" placeholder="O que chamou atenção, pontos positivos, negativos…"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <div class="modal-foot-left" id="modalScoreSummary"></div>
+      <div class="modal-foot-right">
+        <button class="btn btn-ghost" id="btnCloseModal2">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveVisit">Salvar avaliação</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  'use strict';
+
+  const STORAGE_KEY = "comparativo-alugueis-v1";
+  let properties = [];
+  let filtered   = [];
+  let editingId  = null;
+
+  const SCORE_FIELDS = [
+    ["scoreVisit",      "visitScore"],
+    ["scoreWater",      "waterPressureScore"],
+    ["scoreElectrical", "electricalScore"],
+    ["scoreSafety",     "neighborhoodSafetyScore"],
+    ["scoreGarage",     "garageUsabilityScore"],
+  ];
+
+  // ── Composite score ────────────────────────────────────────────────────
+
+  function compositeScore(p) {
+    const scores = [
+      [p.visitScore,               3],
+      [p.neighborhoodSafetyScore,  2],
+      [p.waterPressureScore,       1],
+      [p.electricalScore,          1],
+      [p.garageUsabilityScore,     1],
+    ];
+    let sum = 0, weight = 0;
+    scores.forEach(([v, w]) => { if (v != null) { sum += v * w; weight += w; } });
+    if (!weight) return null;
+    const penalty = (p.moistureIssue === 'yes' ? -0.5 : 0)
+                  + (p.moldSmell     === 'yes' ? -0.5 : 0)
+                  + (p.repairNeeded  === 'critical' ? -1 : p.repairNeeded === 'medium' ? -0.3 : 0);
+    return Math.max(1, Math.min(5, Math.round((sum / weight + penalty) * 10) / 10));
+  }
+
+  function scoreCircleHTML(p) {
+    const s = compositeScore(p);
+    if (s === null) return `<div class="score-circle sc-none">S/N</div>`;
+    const cls = s >= 4.5 ? 'sc-5' : s >= 3.5 ? 'sc-4' : s >= 2.5 ? 'sc-3' : 'sc-2';
+    return `<div class="score-circle ${cls}">${s.toFixed(1)}</div>`;
+  }
+
+  function pips(score, label) {
+    if (!score) return '';
+    let pipHtml = '';
+    for (let i = 1; i <= 5; i++) {
+      pipHtml += `<div class="pip${i <= score ? ' on-' + score : ''}"></div>`;
+    }
+    return `<div class="score-group"><div class="score-group-label">${label}</div><div class="score-pips">${pipHtml}</div></div>`;
+  }
+
+  function flagIcon(val) {
+    if (val === 'yes') return `<span class="flag flag-bad">⚠ sim</span>`;
+    if (val === 'no')  return `<span class="flag flag-ok">✓ não</span>`;
+    if (val === 'to_review') return `<span class="flag flag-warn">? a ver</span>`;
+    return '';
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  function loadProperties() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      properties = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(properties)) properties = [];
+    } catch (e) { properties = []; }
+  }
+
+  function saveProperties() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(properties));
+  }
+
+  function formatBRL(n) {
+    if (n == null || n === "" || isNaN(n)) return null;
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(n);
+  }
+
+  function getTotal(p) {
+    return (Number(p.rent)||0) + (Number(p.condo)||0) + (Number(p.iptu)||0) || null;
+  }
+
+  function getRealMonthlyCost(p) {
+    const base = getTotal(p) || 0;
+    return base + (Number(p.fixedFees)||0) + (Number(p.monthlyInsurance)||0) || null;
+  }
+
+  function displayCost(p) { return getRealMonthlyCost(p) || getTotal(p); }
+
+  function verdictBadge(v) {
+    if (!v) return '';
+    const map = {
+      approve:  ['verd-approve',  '✅ Aprovado'],
+      finalist: ['verd-finalist', '⭐ Finalista'],
+      negotiate:['verd-negotiate','🤝 Negociando'],
+      reject:   ['verd-reject',   '❌ Reprovado'],
+      to_review:['verd-to_review','🔍 A conferir'],
+    };
+    const [cls, label] = map[v] || ['badge-neutral', v];
+    return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  function decisionBadge(p) {
+    if (!p.decisionStatus) return '';
+    const s = p.decisionStatus.toLowerCase();
+    const cls = s === 'favorito'    ? 'dec-favorito'
+              : s === 'visita'      ? 'dec-visita'
+              : s === 'analisando'  ? 'dec-analisando'
+              : s === 'interessante'? 'dec-interessante'
+              : s === 'finalista'   ? 'dec-finalista'
+              : s === 'negociando'  ? 'dec-negociando'
+              : (s === 'aprovado')  ? 'dec-aprovado'
+              : (s === 'descartado' || s === 'reprovado') ? 'dec-descartado'
+              : 'badge-neutral';
+    return `<span class="badge ${cls}">${p.decisionStatus}</span>`;
+  }
+
+  function riskBadge(p) {
+    if (!p.riskLevel) return '';
+    const cls = `risk-${p.riskLevel}`;
+    const label = p.riskLevel === 'baixo' ? '🟢 Baixo' : p.riskLevel === 'medio' ? '🟡 Médio' : '🔴 Alto';
+    return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  function csvEscape(v) {
+    const s = v == null ? "" : String(v);
+    if (s.includes('"') || s.includes(";") || s.includes("\n")) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function toast(msg, duration = 2800) {
+    const el = document.createElement("div");
+    el.className = "toast"; el.textContent = msg;
+    document.getElementById("toastContainer").appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("show")));
+    setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 300); }, duration);
+  }
+
+  function escAttr(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // ── Score buttons ──────────────────────────────────────────────────────
+
+  function buildScoreRows() {
+    SCORE_FIELDS.forEach(([domId]) => {
+      const container = document.getElementById(domId);
+      if (!container) return;
+      container.innerHTML = "";
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "score-btn";
+        btn.textContent = i; btn.dataset.value = i;
+        btn.addEventListener("click", () => {
+          const current = getScoreValue(domId);
+          setScoreValue(domId, current === i ? null : i);
+          updateModalScoreSummary();
+        });
+        container.appendChild(btn);
+      }
+    });
+  }
+
+  function setScoreValue(domId, value) {
+    const container = document.getElementById(domId);
+    if (!container) return;
+    container.querySelectorAll(".score-btn").forEach(btn => {
+      btn.classList.toggle("active", Number(btn.dataset.value) === value);
+    });
+  }
+
+  function getScoreValue(domId) {
+    const container = document.getElementById(domId);
+    if (!container) return null;
+    const active = container.querySelector(".score-btn.active");
+    return active ? Number(active.dataset.value) : null;
+  }
+
+  // ── Flag toggle buttons ────────────────────────────────────────────────
+
+  function buildFlagRows() {
+    document.querySelectorAll(".flag-row").forEach(row => {
+      const targetId = row.dataset.target;
+      row.querySelectorAll(".flag-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          setFlagValue(targetId, btn.dataset.value);
+          updateModalScoreSummary();
+        });
+      });
+    });
+  }
+
+  function setFlagValue(targetId, value) {
+    const hidden = document.getElementById(targetId);
+    if (hidden) hidden.value = value || "";
+    const row = document.querySelector(`.flag-row[data-target="${targetId}"]`);
+    if (!row) return;
+    row.querySelectorAll(".flag-btn").forEach(btn => {
+      btn.classList.remove("active-no", "active-yes", "active-rev");
+      if (btn.dataset.value === value) {
+        btn.classList.add(value === 'no' ? 'active-no' : value === 'yes' ? 'active-yes' : 'active-rev');
+      }
+    });
+  }
+
+  function getFlagValue(targetId) {
+    const hidden = document.getElementById(targetId);
+    return hidden ? hidden.value || null : null;
+  }
+
+  // ── Verdict radio helpers ──────────────────────────────────────────────
+
+  function setVerdictRadio(value) {
+    document.querySelectorAll('input[name="fPostVisitVerdict"]').forEach(radio => {
+      radio.checked = (radio.value === value);
+    });
+  }
+
+  function getVerdictRadio() {
+    const checked = document.querySelector('input[name="fPostVisitVerdict"]:checked');
+    return checked ? checked.value : null;
+  }
+
+  // ── Modal score summary ────────────────────────────────────────────────
+
+  function updateModalScoreSummary() {
+    const partial = {
+      visitScore:              getScoreValue("scoreVisit"),
+      neighborhoodSafetyScore: getScoreValue("scoreSafety"),
+      waterPressureScore:      getScoreValue("scoreWater"),
+      electricalScore:         getScoreValue("scoreElectrical"),
+      garageUsabilityScore:    getScoreValue("scoreGarage"),
+      moistureIssue:           getFlagValue("fMoistureIssue"),
+      moldSmell:               getFlagValue("fMoldSmell"),
+      repairNeeded:            document.getElementById("fRepairNeeded")?.value || null,
+    };
+    const s = compositeScore(partial);
+    const el = document.getElementById("modalScoreSummary");
+    if (!el) return;
+    if (s !== null) {
+      const cls = s >= 4.5 ? 'var(--good)' : s >= 3.5 ? '#84cc16' : s >= 2.5 ? 'var(--warning)' : 'var(--danger)';
+      el.innerHTML = `Score composto: <strong style="color:${cls}">${s.toFixed(1)} / 5</strong>`;
+    } else {
+      el.textContent = "Preencha scores para ver avaliação composta";
+    }
+  }
+
+  // ── Filters + Sort ────────────────────────────────────────────────────
+
+  const VERDICT_WEIGHT = { finalist: 0, approve: 1, negotiate: 2, to_review: 3, reject: 4 };
+
+  function applyFilters() {
+    const q  = document.getElementById("searchInput").value.toLowerCase().trim();
+    const fv = document.getElementById("filterVisited").value;
+    const ff = document.getElementById("filterVerdict").value;
+    const fr = document.getElementById("filterRisk").value;
+    const so = document.getElementById("sortBy").value;
+
+    filtered = properties.filter(p => {
+      const matchQ = !q
+        || (p.title        || "").toLowerCase().includes(q)
+        || (p.city         || "").toLowerCase().includes(q)
+        || (p.neighborhood || "").toLowerCase().includes(q)
+        || (p.address      || "").toLowerCase().includes(q);
+      const isVisited = !!p.visitDate;
+      const matchV = !fv || (fv === "visited" && isVisited) || (fv === "pending" && !isVisited);
+      const matchF = !ff || p.postVisitVerdict === ff;
+      const matchR = !fr || p.riskLevel === fr;
+      return matchQ && matchV && matchF && matchR;
+    });
+
+    // Sort
+    filtered.sort((a, b) => {
+      if (so === 'score-desc') return (compositeScore(b) ?? 0) - (compositeScore(a) ?? 0);
+      if (so === 'score-asc')  return (compositeScore(a) ?? 99) - (compositeScore(b) ?? 99);
+      if (so === 'cost-asc')   return (displayCost(a) ?? 9e9) - (displayCost(b) ?? 9e9);
+      if (so === 'cost-desc')  return (displayCost(b) ?? 0) - (displayCost(a) ?? 0);
+      if (so === 'date-desc') {
+        const da = a.visitDate || '0', db = b.visitDate || '0';
+        return db.localeCompare(da);
+      }
+      // Default: verdict weight then title
+      const wa = VERDICT_WEIGHT[a.postVisitVerdict] ?? 5;
+      const wb = VERDICT_WEIGHT[b.postVisitVerdict] ?? 5;
+      return wa !== wb ? wa - wb : (a.title||'').localeCompare(b.title||'', 'pt');
+    });
+
+    // Result count badge
+    const rc = document.getElementById("resultCount");
+    if (rc) rc.textContent = filtered.length < properties.length
+      ? `${filtered.length} de ${properties.length}`
+      : `${properties.length} im${properties.length !== 1 ? 'óveis' : 'óvel'}`;
+
+    renderStats();
+    renderList();
+  }
+
+  // ── Render stats ──────────────────────────────────────────────────────
+
+  function renderStats() {
+    const total    = properties.length;
+    const visited  = properties.filter(p => p.visitDate).length;
+    const pending  = total - visited;
+    const finalist = properties.filter(p => p.postVisitVerdict === "finalist" || p.postVisitVerdict === "approve").length;
+    const rejected = properties.filter(p => p.postVisitVerdict === "reject").length;
+
+    document.getElementById("statTotal").textContent    = total;
+    document.getElementById("statVisited").textContent  = visited;
+    document.getElementById("statPending").textContent  = pending;
+    document.getElementById("statFinalist").textContent = finalist;
+    document.getElementById("statRejected").textContent = rejected;
+
+    const subVisited = document.getElementById("statVisitedSub");
+    if (subVisited) {
+      const pct = total ? Math.round(visited / total * 100) : 0;
+      subVisited.textContent = total ? `${pct}% do total` : "aguardando visita";
+    }
+    const subTotal = document.getElementById("statTotalSub");
+    if (subTotal) subTotal.textContent = total !== 1 ? "imóveis cadastrados" : "imóvel cadastrado";
+  }
+
+  // ── Render list ───────────────────────────────────────────────────────
+
+  function renderList() {
+    const list = document.getElementById("propList");
+    if (!filtered.length) {
+      list.innerHTML = `<div class="empty"><span class="empty-icon">🔍</span>Nenhum imóvel encontrado com os filtros aplicados.</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(p => {
+      const cost      = displayCost(p);
+      const costStr   = cost ? formatBRL(cost) : "—";
+      const rent      = Number(p.rent)  || 0;
+      const condo     = Number(p.condo) || 0;
+      const iptu      = Number(p.iptu)  || 0;
+      const loc       = [p.neighborhood, p.city].filter(Boolean).join(", ") || "Localização não informada";
+      const isVisited = !!p.visitDate;
+      const vClass    = p.postVisitVerdict ? `verdict-${p.postVisitVerdict}` : '';
+      const sc        = scoreCircleHTML(p);
+
+      // Spec chips
+      const specs = [
+        p.rooms      ? `🛏 ${p.rooms}`       : '',
+        p.bathrooms  ? `🚿 ${p.bathrooms}`   : '',
+        p.parkingSpots > 0 ? `🚗 ${p.parkingSpots}` : '',
+        p.area       ? `📐 ${p.area}m²`      : '',
+        p.propertyType ? `🏠 ${p.propertyType}` : '',
+      ].filter(Boolean).map(s => `<span class="chip">${escAttr(s)}</span>`).join('');
+
+      // Cost breakdown
+      const breakdown = [
+        rent  ? `aluguel ${formatBRL(rent)}`  : '',
+        condo ? `cond. ${formatBRL(condo)}`   : '',
+        iptu  ? `IPTU ${formatBRL(iptu)}`     : '',
+      ].filter(Boolean).join(' · ');
+
+      const costSub = getRealMonthlyCost(p) && getRealMonthlyCost(p) !== getTotal(p)
+        ? `<div class="cost-sub">inclui encargos</div>` : '';
+
+      // Visit detail section
+      let visitDetail = '';
+      if (isVisited) {
+        const scoresPips = [
+          p.visitScore              ? pips(p.visitScore,              'Geral')    : '',
+          p.neighborhoodSafetyScore ? pips(p.neighborhoodSafetyScore, 'Bairro')   : '',
+          p.waterPressureScore      ? pips(p.waterPressureScore,      'Água')     : '',
+          p.electricalScore         ? pips(p.electricalScore,         'Elétrica') : '',
+          p.garageUsabilityScore    ? pips(p.garageUsabilityScore,    'Garagem')  : '',
+        ].filter(Boolean).join('');
+
+        const flags = [
+          p.moistureIssue ? `<span class="flag ${p.moistureIssue==='yes'?'flag-bad':p.moistureIssue==='no'?'flag-ok':'flag-warn'}">💧 umidade ${p.moistureIssue==='yes'?'sim':p.moistureIssue==='no'?'não':'?'}</span>` : '',
+          p.moldSmell     ? `<span class="flag ${p.moldSmell==='yes'?'flag-bad':p.moldSmell==='no'?'flag-ok':'flag-warn'}">🟫 mofo ${p.moldSmell==='yes'?'sim':p.moldSmell==='no'?'não':'?'}</span>` : '',
+          p.repairNeeded && p.repairNeeded !== 'none' ? `<span class="flag ${p.repairNeeded==='critical'||p.repairNeeded==='medium'?'flag-bad':'flag-warn'}">🔧 reparos: ${p.repairNeeded}</span>` : '',
+          p.noiseLevel && p.noiseLevel !== 'low' ? `<span class="flag ${p.noiseLevel==='high'?'flag-bad':'flag-warn'}">🔊 ruído: ${p.noiseLevel}</span>` : '',
+        ].filter(Boolean).join(' ');
+
+        const notesPrev = p.visitNotes
+          ? `<div class="visit-notes-preview">"${escAttr(p.visitNotes.slice(0, 160))}${p.visitNotes.length > 160 ? '…' : ''}"</div>` : '';
+
+        visitDetail = (scoresPips || flags || notesPrev) ? `
+          <div class="prop-visit-row">
+            ${scoresPips}
+            ${flags ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${flags}</div>` : ''}
+            ${notesPrev}
+          </div>` : '';
+      }
+
+      const visitLabel = isVisited
+        ? `<span class="badge badge-good">✓ ${p.visitDate || 'visitado'}</span>`
+        : `<span class="badge badge-neutral">Pendente</span>`;
+
+      return `
+      <div class="prop-card ${vClass}" data-id="${p.id}">
+        <div class="prop-main">
+          <div class="prop-body">
+            <div class="prop-head-row">
+              ${sc}
+              <div style="flex:1;min-width:0">
+                <p class="prop-title">${escAttr(p.title || "Sem título")}</p>
+                <p class="prop-location">📍 ${escAttr(loc)}</p>
+              </div>
+            </div>
+            <div class="prop-chips">
+              ${visitLabel}
+              ${p.postVisitVerdict ? verdictBadge(p.postVisitVerdict) : ''}
+              ${decisionBadge(p)}
+              ${riskBadge(p)}
+              ${specs}
+            </div>
+            ${visitDetail}
+          </div>
+          <div class="prop-aside">
+            <div class="cost-block">
+              <div class="cost-main">${escAttr(costStr)}</div>
+              ${costSub}
+              ${breakdown ? `<div class="cost-breakdown">${escAttr(breakdown)}</div>` : ''}
+            </div>
+            <button class="btn btn-primary btn-small" onclick="openVisitModal('${escAttr(p.id)}')">
+              ${isVisited ? '✏ Reeditar' : '🚪 Avaliar'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // ── Modal ──────────────────────────────────────────────────────────────
+
+  function openVisitModal(id) {
+    const p = properties.find(x => x.id === id);
+    if (!p) return;
+    editingId = id;
+
+    document.getElementById("fId").value = id;
+    document.getElementById("modalTitle").textContent    = p.title || "Avaliar visita";
+    document.getElementById("modalSubtitle").textContent =
+      [p.neighborhood, p.city].filter(Boolean).join(", ") || "Avaliação de visita";
+
+    // Header meta badges
+    const meta = document.getElementById("modalHeadMeta");
+    if (meta) meta.innerHTML = verdictBadge(p.postVisitVerdict) + decisionBadge(p) + riskBadge(p);
+
+    document.getElementById("fVisitDate").value           = p.visitDate || "";
+    document.getElementById("fVisitedBy").value           = p.visitedBy || "";
+    document.getElementById("fRepairNeeded").value        = p.repairNeeded || "";
+    document.getElementById("fEstimatedRepairCost").value = p.estimatedRepairCost ?? "";
+    document.getElementById("fNoiseLevel").value          = p.noiseLevel || "";
+    document.getElementById("fVisitNotes").value          = p.visitNotes || "";
+
+    setVerdictRadio(p.postVisitVerdict || "");
+    setFlagValue("fMoistureIssue", p.moistureIssue || "");
+    setFlagValue("fMoldSmell",     p.moldSmell     || "");
+
+    SCORE_FIELDS.forEach(([domId, key]) => setScoreValue(domId, p[key] ?? null));
+
+    updateModalScoreSummary();
+    document.getElementById("visitModal").classList.add("is-open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    document.getElementById("visitModal").classList.remove("is-open");
+    document.body.style.overflow = "";
+    editingId = null;
+  }
+
+  function saveVisit() {
+    const id  = document.getElementById("fId").value;
+    const idx = properties.findIndex(p => p.id === id);
+    if (idx === -1) { toast("Imóvel não encontrado."); return; }
+
+    const verdict = getVerdictRadio();
+    const verdictToDecision = {
+      approve:   "Interessante",
+      finalist:  "Finalista",
+      negotiate: "Negociando",
+      reject:    "Reprovado",
+    };
+    let newDecision = properties[idx].decisionStatus || "";
+    if (verdict && verdictToDecision[verdict]) newDecision = verdictToDecision[verdict];
+    else if (verdict === 'to_review') newDecision = newDecision || "A conferir";
+
+    properties[idx] = {
+      ...properties[idx],
+      visitDate:               document.getElementById("fVisitDate").value || null,
+      visitedBy:               document.getElementById("fVisitedBy").value.trim() || null,
+      postVisitVerdict:        verdict || null,
+      moistureIssue:           getFlagValue("fMoistureIssue"),
+      moldSmell:               getFlagValue("fMoldSmell"),
+      repairNeeded:            document.getElementById("fRepairNeeded").value || null,
+      estimatedRepairCost:     parseFloat(document.getElementById("fEstimatedRepairCost").value) || null,
+      noiseLevel:              document.getElementById("fNoiseLevel").value || null,
+      visitNotes:              document.getElementById("fVisitNotes").value.trim() || null,
+      visitScore:              getScoreValue("scoreVisit"),
+      waterPressureScore:      getScoreValue("scoreWater"),
+      electricalScore:         getScoreValue("scoreElectrical"),
+      neighborhoodSafetyScore: getScoreValue("scoreSafety"),
+      garageUsabilityScore:    getScoreValue("scoreGarage"),
+      decisionStatus:          newDecision,
+    };
+
+    saveProperties();
+    closeModal();
+    applyFilters();
+    toast("✅ Avaliação salva com sucesso!");
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────
+
+  function exportCsv() {
+    const headers = [
+      "ID","Título","Cidade","Bairro","Total/mês","Custo Real/mês",
+      "Data Visita","Visitado por","Veredicto","Score Composto","Nota Geral",
+      "Umidade","Cheiro Mofo","Pressão Água","Elétrica",
+      "Ruído","Seg. Bairro","Garagem","Reparos","Custo Reparos",
+      "Decisão","Risco","Anotações"
+    ];
+    const rows = properties.map(p => [
+      p.id, p.title, p.city, p.neighborhood,
+      getTotal(p) ?? "", getRealMonthlyCost(p) ?? "",
+      p.visitDate ?? "", p.visitedBy ?? "",
+      p.postVisitVerdict ?? "", compositeScore(p) ?? "", p.visitScore ?? "",
+      p.moistureIssue ?? "", p.moldSmell ?? "",
+      p.waterPressureScore ?? "", p.electricalScore ?? "",
+      p.noiseLevel ?? "", p.neighborhoodSafetyScore ?? "",
+      p.garageUsabilityScore ?? "", p.repairNeeded ?? "",
+      p.estimatedRepairCost ?? "",
+      p.decisionStatus ?? "", p.riskLevel ?? "", p.visitNotes ?? ""
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(csvEscape).join(";")).join("\n");
+    dl("visitas-alugueis.csv", "\uFEFF" + csv, "text/csv;charset=utf-8");
+  }
+
+  function exportJson() {
+    dl("alugueis-completo.json", JSON.stringify(properties, null, 2), "application/json;charset=utf-8");
+  }
+
+  function dl(filename, content, type) {
+    const blob = new Blob([content], { type });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement("a"), { href: url, download: filename });
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────
+
+  function init() {
+    buildScoreRows();
+    buildFlagRows();
+    loadProperties();
+    applyFilters();
+
+    ["searchInput","filterVisited","filterVerdict","filterRisk","sortBy"]
+      .forEach(id => document.getElementById(id)?.addEventListener("change", applyFilters));
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+
+    document.getElementById("btnClear").addEventListener("click", () => {
+      ["searchInput","filterVisited","filterVerdict","filterRisk","sortBy"]
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+      applyFilters();
+    });
+
+    document.getElementById("btnCloseModal").addEventListener("click",  closeModal);
+    document.getElementById("btnCloseModal2").addEventListener("click", closeModal);
+    document.getElementById("btnSaveVisit").addEventListener("click",   saveVisit);
+    document.getElementById("btnExportCsv").addEventListener("click",   exportCsv);
+    document.getElementById("btnExportJson").addEventListener("click",  exportJson);
+
+    // Sync with other tabs
+    window.addEventListener("storage", e => {
+      if (e.key === STORAGE_KEY) { loadProperties(); applyFilters(); }
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>

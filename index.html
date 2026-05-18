@@ -826,6 +826,50 @@
 
     .description { display: none; }
 
+    /* Decision & risk badges */
+    .badge.risk-baixo  { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+    .badge.risk-medio  { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+    .badge.risk-alto   { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+    .badge.dec-favorito  { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+    .badge.dec-visita    { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .badge.dec-descartado { background: #fef2f2; color: #dc2626; border-color: #fecaca; text-decoration: line-through; }
+    .badge.dec-aprovado  { background: #ecfdf5; color: #059669; border-color: #6ee7b7; font-weight:700; }
+
+    /* Financial settings panel */
+    .settings-panel {
+      margin-top: 14px;
+    }
+    .settings-panel summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 13px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      user-select: none;
+    }
+    .settings-panel summary::-webkit-details-marker { display: none; }
+    .settings-panel summary::before { content: '›'; transition: transform 0.2s; display: inline-block; color: var(--muted); }
+    .settings-panel[open] summary::before { transform: rotate(90deg); }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 0 20px 16px;
+    }
+    @media (max-width: 720px) {
+      .settings-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .real-cost-hint {
+      font-size: 10.5px;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+
 
 
 
@@ -873,6 +917,31 @@
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.02em;
+    }
+
+    .modal-close-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close-btn:hover {
+      background: var(--line);
+      color: var(--text);
+    }
+    .modal-close-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     .form-grid {
@@ -1226,6 +1295,7 @@
         </div>
 
         <div class="nav-actions">
+          <a href="visitas.html" class="btn btn-ghost"><span class="btn-label">🚪 Visitas</span></a>
           <button class="btn btn-secondary" id="btnExportCsv"><span class="btn-label">Exportar CSV</span></button>
           <button class="btn btn-ghost" id="btnExportJson"><span class="btn-label">Exportar JSON</span></button>
           <button class="btn btn-primary" id="btnNew"><span class="btn-label">Adicionar imóvel</span></button>
@@ -1270,6 +1340,33 @@
 
         </section>
       </section>
+
+      <!-- Financial settings -->
+      <details class="panel settings-panel" id="settingsPanel">
+        <summary>⚙ Configurações de orçamento</summary>
+        <div class="settings-grid">
+          <div class="field">
+            <label for="settingIdealBudget">Orçamento ideal / mês (R$)</label>
+            <input id="settingIdealBudget" type="number" step="50" min="0" placeholder="Ex.: 1400" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label for="settingMaxBudget">Orçamento máximo / mês (R$)</label>
+            <input id="settingMaxBudget" type="number" step="50" min="0" placeholder="Ex.: 1700" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label for="settingMoveInCash">Caixa disponível para mudança (R$)</label>
+            <input id="settingMoveInCash" type="number" step="100" min="0" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label for="settingMovingCost">Custo estimado de mudança (R$)</label>
+            <input id="settingMovingCost" type="number" step="100" min="0" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label for="settingEssentialsCost">Custo fase 1 essenciais (R$)</label>
+            <input id="settingEssentialsCost" type="number" step="100" min="0" oninput="saveSettings()" />
+          </div>
+        </div>
+      </details>
 
       <section class="stats" aria-label="Indicadores do comparativo">
         <article class="stat-card">
@@ -1366,6 +1463,28 @@
           </select>
         </div>
 
+        <div class="field">
+          <label for="decisionFilter">Decisão</label>
+          <select id="decisionFilter">
+            <option value="">Todas</option>
+            <option value="analisando">Analisando</option>
+            <option value="favorito">Favorito</option>
+            <option value="visita">Visita agendada</option>
+            <option value="aprovado">Aprovado</option>
+            <option value="descartado">Descartado</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="riskFilter">Risco</label>
+          <select id="riskFilter">
+            <option value="">Todos</option>
+            <option value="baixo">Baixo</option>
+            <option value="medio">Médio</option>
+            <option value="alto">Alto</option>
+          </select>
+        </div>
+
         <button class="btn btn-ghost" id="btnClearFilters">Limpar</button>
       </section>
 
@@ -1382,16 +1501,17 @@
           <div class="table-wrap">
             <table aria-label="Tabela de comparação de imóveis">
               <colgroup>
-                <col style="width:120px"><!-- Imóvel -->
+                <col style="width:112px"><!-- Imóvel -->
                 <col style="width:108px"><!-- Valor -->
-                <col style="width:52px"> <!-- Área -->
-                <col style="width:62px"> <!-- R$/m² -->
-                <col style="width:70px"> <!-- Cômodos -->
-                <col style="width:150px"><!-- Localização -->
-                <col style="width:90px"> <!-- CB Score -->
-                <col style="width:72px"> <!-- Status -->
-                <col style="width:72px"> <!-- Qualidade -->
-                <col style="width:38px"> <!-- Ações -->
+                <col style="width:50px"> <!-- Área -->
+                <col style="width:60px"> <!-- R$/m² -->
+                <col style="width:68px"> <!-- Cômodos -->
+                <col style="width:140px"><!-- Localização -->
+                <col style="width:82px"> <!-- CB Score -->
+                <col style="width:68px"> <!-- Status -->
+                <col style="width:68px"> <!-- Qualidade -->
+                <col style="width:80px"> <!-- Decisão -->
+                <col style="width:36px"> <!-- Ações -->
               </colgroup>
               <thead>
                 <tr>
@@ -1404,6 +1524,7 @@
                   <th data-sort="score">CB Score</th>
                   <th data-sort="status">Status</th>
                   <th>Qualidade</th>
+                  <th data-sort="decisionStatus">Decisão</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -1424,7 +1545,7 @@
             <h3 id="modalTitle">Editar imóvel</h3>
             <p class="muted">Preencha ou corrija os dados do anúncio.</p>
           </div>
-          <button class="btn btn-ghost btn-small" id="btnCloseModal">Fechar</button>
+          <button class="modal-close-btn" id="btnCloseModal" aria-label="Fechar modal" title="Fechar">&times;</button>
         </div>
 
         <form id="propertyForm">
@@ -1515,6 +1636,93 @@
             </div>
           </div>
 
+          <!-- Decision & costs section -->
+          <details style="margin-top:18px;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden">
+            <summary style="padding:11px 14px;cursor:pointer;font-weight:600;font-size:13px;background:var(--surface-2);list-style:none;display:flex;align-items:center;gap:6px;">🧮 Decisão e custos adicionais</summary>
+            <div class="form-grid" style="padding:14px">
+              <div class="field">
+                <label for="formDecisionStatus">Status de decisão</label>
+                <select id="formDecisionStatus">
+                  <option value="">Não definido</option>
+                  <option value="analisando">Analisando</option>
+                  <option value="favorito">Favorito ⭐</option>
+                  <option value="visita">Visita agendada 📅</option>
+                  <option value="aprovado">Aprovado ✅</option>
+                  <option value="descartado">Descartado ❌</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="formRiskLevel">Nível de risco</label>
+                <select id="formRiskLevel">
+                  <option value="">Não avaliado</option>
+                  <option value="baixo">Baixo 🟢</option>
+                  <option value="medio">Médio 🟡</option>
+                  <option value="alto">Alto 🔴</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="formGuaranteeType">Garantia exigida</label>
+                <select id="formGuaranteeType">
+                  <option value="">Não informado</option>
+                  <option value="fiador">Fiador</option>
+                  <option value="seguro">Seguro fiança</option>
+                  <option value="caucao">Caução</option>
+                  <option value="titulo">Título de capitalização</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="formFixedFees">Taxas fixas/mês (R$)</label>
+                <input id="formFixedFees" type="number" step="0.01" min="0" placeholder="Ex.: 50" />
+              </div>
+              <div class="field">
+                <label for="formMonthlyInsurance">Seguro incêndio/mês (R$)</label>
+                <input id="formMonthlyInsurance" type="number" step="0.01" min="0" placeholder="Ex.: 20" />
+              </div>
+              <div class="field">
+                <label for="formEstimatedInitialCost">Custo inicial estimado (R$)</label>
+                <input id="formEstimatedInitialCost" type="number" step="1" min="0" placeholder="Ex.: 3000" />
+              </div>
+              <div class="field">
+                <label for="formNonRecoverableInitialCost">Custos não recuperáveis (R$)</label>
+                <input id="formNonRecoverableInitialCost" type="number" step="1" min="0" />
+              </div>
+              <div class="field">
+                <label for="formCommuteDistanceKm">Distância trabalho (km)</label>
+                <input id="formCommuteDistanceKm" type="number" step="0.1" min="0" />
+              </div>
+              <div class="field">
+                <label for="formCommuteTimeMin">Tempo de deslocamento (min)</label>
+                <input id="formCommuteTimeMin" type="number" step="1" min="0" />
+              </div>
+              <div class="field">
+                <label for="formVentilationScore">Ventilação (1–5)</label>
+                <input id="formVentilationScore" type="number" step="1" min="1" max="5" />
+              </div>
+              <div class="field">
+                <label for="formNaturalLightScore">Iluminação natural (1–5)</label>
+                <input id="formNaturalLightScore" type="number" step="1" min="1" max="5" />
+              </div>
+              <div class="field">
+                <label for="formFurnishingNeedLevel">Necessidade de mobília</label>
+                <select id="formFurnishingNeedLevel">
+                  <option value="">Não avaliado</option>
+                  <option value="nenhuma">Nenhuma (mobiliado)</option>
+                  <option value="baixa">Baixa</option>
+                  <option value="media">Média</option>
+                  <option value="alta">Alta (vazio)</option>
+                </select>
+              </div>
+              <div class="field" style="display:flex;align-items:center;gap:8px;padding-top:22px">
+                <input id="formHasLaundryArea" type="checkbox" style="width:auto;min-height:auto" />
+                <label for="formHasLaundryArea" style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:0">Tem área de serviço</label>
+              </div>
+              <div class="field span-3">
+                <label for="formRejectionReason">Motivo de descarte / observações</label>
+                <textarea id="formRejectionReason" rows="2"></textarea>
+              </div>
+            </div>
+          </details>
+
           <div class="actions" style="margin-top: 16px;">
             <button class="btn btn-primary" type="submit">Salvar imóvel</button>
             <button class="btn btn-danger" type="button" id="btnDelete">Excluir</button>
@@ -1532,7 +1740,16 @@
     // Sem framework, sem npm, pronto para GitHub Pages.
     // ============================================================
 
-    const STORAGE_KEY = "comparativo-alugueis-v1";
+    const STORAGE_KEY  = "comparativo-alugueis-v1";
+    const SETTINGS_KEY  = "comparativo-settings-v1";
+
+    let financialSettings = {
+      idealMonthlyBudget: null,
+      maxMonthlyBudget: null,
+      availableMoveInCash: null,
+      estimatedMovingCost: null,
+      estimatedPhase1EssentialsCost: null
+    };
 
     const initialLinks = [
       "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-belo-horizonte-barreiro-milionarios/1174765/",
@@ -1780,8 +1997,10 @@
       cityFilter: $("#cityFilter"),
       roomsFilter: $("#roomsFilter"),
       maxTotalInput: $("#maxTotalInput"),
-      statusFilter: $("#statusFilter"),
-      qualityFilter: $("#qualityFilter"),
+      statusFilter:   $("#statusFilter"),
+      qualityFilter:  $("#qualityFilter"),
+      decisionFilter: $("#decisionFilter"),
+      riskFilter:     $("#riskFilter"),
       modal: $("#modal"),
       propertyForm: $("#propertyForm"),
       toast: $("#toast")
@@ -1792,6 +2011,7 @@
     function init() {
       setupHashRoute();
       loadData();
+      loadSettings();
       bindEvents();
       renderLinkList();
       renderAll();
@@ -1821,6 +2041,8 @@
       elements.maxTotalInput.addEventListener("input", renderAll);
       elements.statusFilter.addEventListener("change", renderAll);
       elements.qualityFilter.addEventListener("change", renderAll);
+      elements.decisionFilter.addEventListener("change", renderAll);
+      elements.riskFilter.addEventListener("change", renderAll);
 
       elements.propertyForm.addEventListener("submit", saveForm);
 
@@ -1836,9 +2058,7 @@
         });
       });
 
-      elements.modal.addEventListener("click", (event) => {
-        if (event.target === elements.modal) closeModal();
-      });
+      // Modal closes only via the × button — no backdrop click dismissal
     }
 
     function loadData() {
@@ -1879,6 +2099,38 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(properties));
     }
 
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (raw) financialSettings = { ...financialSettings, ...JSON.parse(raw) };
+      } catch (_) {}
+      // Populate inputs
+      const map = {
+        settingIdealBudget:   "idealMonthlyBudget",
+        settingMaxBudget:     "maxMonthlyBudget",
+        settingMoveInCash:    "availableMoveInCash",
+        settingMovingCost:    "estimatedMovingCost",
+        settingEssentialsCost:"estimatedPhase1EssentialsCost"
+      };
+      Object.entries(map).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el && financialSettings[key] != null) el.value = financialSettings[key];
+      });
+    }
+
+    function saveSettings() {
+      financialSettings = {
+        idealMonthlyBudget:             toNullableNumber(document.getElementById("settingIdealBudget")?.value),
+        maxMonthlyBudget:               toNullableNumber(document.getElementById("settingMaxBudget")?.value),
+        availableMoveInCash:            toNullableNumber(document.getElementById("settingMoveInCash")?.value),
+        estimatedMovingCost:            toNullableNumber(document.getElementById("settingMovingCost")?.value),
+        estimatedPhase1EssentialsCost:  toNullableNumber(document.getElementById("settingEssentialsCost")?.value)
+      };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(financialSettings));
+    }
+
+    window.saveSettings = saveSettings;
+
     function clone(value) {
       return JSON.parse(JSON.stringify(value));
     }
@@ -1910,8 +2162,10 @@
       const city = elements.cityFilter.value;
       const rooms = elements.roomsFilter.value;
       const maxTotal = toNumber(elements.maxTotalInput.value);
-      const status = elements.statusFilter.value;
-      const quality = elements.qualityFilter.value;
+      const status   = elements.statusFilter.value;
+      const quality  = elements.qualityFilter.value;
+      const decision = elements.decisionFilter.value;
+      const risk     = elements.riskFilter.value;
 
       return list.filter((item) => {
         const haystack = normalizeText([
@@ -1936,8 +2190,10 @@
             : Number(item.rooms || 0) === Number(rooms)
         );
         const matchesMaxTotal = !maxTotal || (total !== null && total <= maxTotal);
+        const matchesDecision = !decision || (item.decisionStatus || "") === decision;
+        const matchesRisk     = !risk     || (item.riskLevel || "") === risk;
 
-        return matchesSearch && matchesCity && matchesRooms && matchesMaxTotal && matchesStatus && matchesQuality;
+        return matchesSearch && matchesCity && matchesRooms && matchesMaxTotal && matchesStatus && matchesQuality && matchesDecision && matchesRisk;
       });
     }
 
@@ -2002,6 +2258,7 @@
       if (key === "title") return item.title || "";
       if (key === "neighborhood") return `${item.city || ""} ${item.neighborhood || ""}`;
       if (key === "status") return item.status || "";
+      if (key === "decisionStatus") return item.decisionStatus || "";
       return item[key] ?? null;
     }
 
@@ -2118,6 +2375,10 @@
             <td class="score-cell">${scoreCell}</td>
             <td>${statusBadge(item.status)}</td>
             <td>${qualidadeBadge(item)}</td>
+            <td>
+              ${decisionBadge(item)}
+              ${item.riskLevel ? riskBadge(item) : ''}
+            </td>
             <td style="text-align:center">
               <button class="btn-icon" onclick="editProperty('${escapeAttr(item.id)}')" title="Editar imóvel">✏</button>
             </td>
@@ -2220,6 +2481,8 @@
                 <a class="btn btn-ghost btn-small" href="${escapeAttr(item.url || '#')}" target="_blank" rel="noopener">Ver anúncio ↗</a>
                 <button class="btn btn-secondary btn-small" onclick="editProperty('${escapeAttr(item.id)}')">✏ Editar</button>
               </div>
+
+              ${(item.decisionStatus || item.riskLevel) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${decisionBadge(item)}${item.riskLevel ? riskBadge(item) : ''}</div>` : ''}
 
             </div>
           </article>
@@ -2549,7 +2812,21 @@
         parking: null,
         features: parsed.rooms ? `${parsed.rooms} quarto(s); demais características a conferir` : "Características a conferir",
         description: "Imóvel importado pelo link. Complete os campos após conferir o anúncio.",
-        status: "pendente"
+        status: "pendente",
+        decisionStatus: "",
+        riskLevel: "",
+        guaranteeType: "",
+        fixedFees: null,
+        monthlyInsurance: null,
+        estimatedInitialCost: null,
+        nonRecoverableInitialCost: null,
+        commuteDistanceKm: null,
+        commuteTimeMin: null,
+        ventilationScore: null,
+        naturalLightScore: null,
+        furnishingNeedLevel: "",
+        hasLaundryArea: false,
+        rejectionReason: ""
       };
     }
 
@@ -2631,12 +2908,30 @@
       $("#formFeatures").value = item.features || "";
       $("#formDescription").value = item.description || "";
 
+      // Decision & cost fields
+      $("#formDecisionStatus").value = item.decisionStatus || "";
+      $("#formRiskLevel").value = item.riskLevel || "";
+      $("#formGuaranteeType").value = item.guaranteeType || "";
+      $("#formFixedFees").value = item.fixedFees ?? "";
+      $("#formMonthlyInsurance").value = item.monthlyInsurance ?? "";
+      $("#formEstimatedInitialCost").value = item.estimatedInitialCost ?? "";
+      $("#formNonRecoverableInitialCost").value = item.nonRecoverableInitialCost ?? "";
+      $("#formCommuteDistanceKm").value = item.commuteDistanceKm ?? "";
+      $("#formCommuteTimeMin").value = item.commuteTimeMin ?? "";
+      $("#formVentilationScore").value = item.ventilationScore ?? "";
+      $("#formNaturalLightScore").value = item.naturalLightScore ?? "";
+      $("#formFurnishingNeedLevel").value = item.furnishingNeedLevel || "";
+      $("#formHasLaundryArea").checked = !!item.hasLaundryArea;
+      $("#formRejectionReason").value = item.rejectionReason || "";
+
       $("#btnDelete").hidden = !properties.some((property) => property.id === item.id);
       elements.modal.classList.add("is-open");
+      document.body.style.overflow = "hidden";
     }
 
     function closeModal() {
       elements.modal.classList.remove("is-open");
+      document.body.style.overflow = "";
     }
 
     function saveForm(event) {
@@ -2659,7 +2954,22 @@
         type: $("#formType").value.trim(),
         address: $("#formAddress").value.trim(),
         features: $("#formFeatures").value.trim(),
-        description: $("#formDescription").value.trim()
+        description: $("#formDescription").value.trim(),
+        // Decision & cost fields
+        decisionStatus: $("#formDecisionStatus").value,
+        riskLevel: $("#formRiskLevel").value,
+        guaranteeType: $("#formGuaranteeType").value,
+        fixedFees: toNullableNumber($("#formFixedFees").value),
+        monthlyInsurance: toNullableNumber($("#formMonthlyInsurance").value),
+        estimatedInitialCost: toNullableNumber($("#formEstimatedInitialCost").value),
+        nonRecoverableInitialCost: toNullableNumber($("#formNonRecoverableInitialCost").value),
+        commuteDistanceKm: toNullableNumber($("#formCommuteDistanceKm").value),
+        commuteTimeMin: toNullableNumber($("#formCommuteTimeMin").value),
+        ventilationScore: toNullableNumber($("#formVentilationScore").value),
+        naturalLightScore: toNullableNumber($("#formNaturalLightScore").value),
+        furnishingNeedLevel: $("#formFurnishingNeedLevel").value,
+        hasLaundryArea: $("#formHasLaundryArea").checked,
+        rejectionReason: $("#formRejectionReason").value.trim()
       };
 
       upsertProperty(item);
@@ -2690,6 +3000,8 @@
       elements.maxTotalInput.value = "";
       elements.statusFilter.value = "";
       elements.qualityFilter.value = "";
+      elements.decisionFilter.value = "";
+      elements.riskFilter.value = "";
       renderAll();
     }
 
@@ -2713,7 +3025,11 @@
         "Vagas",
         "Características",
         "Descrição",
-        "Status"
+        "Status",
+        "Decisão",
+        "Risco",
+        "Custo Real/mês",
+        "Score Decisão"
       ];
 
       const rows = filteredProperties.map((item) => [
@@ -2735,7 +3051,11 @@
         item.parking ?? "",
         item.features,
         item.description,
-        item.status
+        item.status,
+        item.decisionStatus ?? "",
+        item.riskLevel ?? "",
+        getRealMonthlyCost(item) ?? "",
+        getDecisionScore(item) ?? ""
       ]);
 
       const csv = [headers, ...rows]
@@ -2784,7 +3104,21 @@
         parking: null,
         features: "",
         description: "",
-        status: "pendente"
+        status: "pendente",
+        decisionStatus: "",
+        riskLevel: "",
+        guaranteeType: "",
+        fixedFees: null,
+        monthlyInsurance: null,
+        estimatedInitialCost: null,
+        nonRecoverableInitialCost: null,
+        commuteDistanceKm: null,
+        commuteTimeMin: null,
+        ventilationScore: null,
+        naturalLightScore: null,
+        furnishingNeedLevel: "",
+        hasLaundryArea: false,
+        rejectionReason: ""
       };
     }
 
@@ -2796,6 +3130,37 @@
       return (rent || 0) + (condo || 0) + (iptu || 0);
     }
 
+    function getRealMonthlyCost(item) {
+      const base  = getTotal(item);
+      const fixed = toNullableNumber(item.fixedFees);
+      const ins   = toNullableNumber(item.monthlyInsurance);
+      if (base === null && fixed === null && ins === null) return null;
+      return (base || 0) + (fixed || 0) + (ins || 0);
+    }
+
+    function getAnnualCost(item) {
+      const monthly = getRealMonthlyCost(item);
+      if (monthly === null) return null;
+      return monthly * 12 + (toNullableNumber(item.estimatedInitialCost) || 0);
+    }
+
+    function getFinancialSafety(item) {
+      const real = getRealMonthlyCost(item);
+      const max  = financialSettings.maxMonthlyBudget;
+      if (real === null || !max) return null;
+      return max - real;
+    }
+
+    function getDecisionScore(item) {
+      const score = getValueScore(item);
+      if (score === null) return null;
+      const commute     = toNullableNumber(item.commuteTimeMin);
+      const commutePenalty = commute ? Math.max(0, (commute - 30) * 0.5) : 0;
+      const safety      = getFinancialSafety(item);
+      const safetyBonus = safety !== null ? Math.min(safety / 100, 10) : 0;
+      return Math.max(0, score - commutePenalty + safetyBonus);
+    }
+
     function getPriceM2(item) {
       const total = getTotal(item);
       const area = toNullableNumber(item.area);
@@ -2804,11 +3169,31 @@
       return total / area;
     }
 
+    function decisionBadge(item) {
+      const v = item.decisionStatus || "";
+      const MAP = {
+        analisando:  ["analisando", "🔍"],
+        favorito:    ["dec-favorito",  "⭐ Favorito"],
+        visita:      ["dec-visita",    "📅 Visita"],
+        aprovado:    ["dec-aprovado",  "✅ Aprovado"],
+        descartado:  ["dec-descartado","❌ Descartado"]
+      };
+      if (!v || !MAP[v]) return `<span class="badge miss" title="Sem decisão">—</span>`;
+      const [cls, label] = MAP[v];
+      const reason = item.rejectionReason ? ` (${item.rejectionReason})` : "";
+      return `<span class="badge ${cls}" title="${escapeAttr(label + reason)}">${label}</span>`;
+    }
+
+    function riskBadge(item) {
+      const v = item.riskLevel || "";
+      if (!v) return `<span class="badge miss">—</span>`;
+      const MAP = { baixo: ["risk-baixo", "🟢 Baixo"], medio: ["risk-medio", "🟡 Médio"], alto: ["risk-alto", "🔴 Alto"] };
+      const [cls, label] = MAP[v] || ["miss", v];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+
     function formatBRL(value) {
-      return Number(value).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
+      return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
     function formatMaybeBRL(value) {
