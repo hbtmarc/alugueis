@@ -338,7 +338,7 @@
       transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
       min-height: 38px;
       white-space: nowrap;
-      letter-spacing: -0.01em;
+      text-decoration: none;      letter-spacing: -0.01em;
     }
 
     .btn:hover { opacity: 0.88; }
@@ -366,11 +366,12 @@
     .btn-ghost:hover { opacity: 1; color: var(--text); border-color: #c5cde0; }
 
     .btn-visits {
-      background: #f0fdf4; color: #16a34a;
-      border: 1px solid #bbf7d0;
-      position: relative;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
     }
-    .btn-visits:hover { background: #dcfce7; border-color: #86efac; }
+    .btn-visits:hover { background: var(--surface-2); border-color: #c5cde0; }
     .visits-badge {
       display: inline-flex !important; align-items: center; justify-content: center;
       min-width: 18px; height: 18px; padding: 0 5px;
@@ -1333,7 +1334,8 @@
               </div>
             </div>
             <div class="ip-input-row">
-              <textarea id="linksInput" spellcheck="false" placeholder="https://www.netimoveis.com/imovel/..."></textarea>
+              <textarea id="linksInput" spellcheck="false" placeholder="https://www.netimoveis.com/imovel/...
+&#10;https://www.quintoandar.com.br/imovel/..."></textarea>
               <div class="ip-btn-col">
                 <button class="btn btn-primary" id="btnAddLinks">⬆ Adicionar</button>
                 <button class="btn btn-secondary" id="btnTryRead">🔍 Buscar dados</button>
@@ -1502,6 +1504,21 @@
           </select>
         </div>
 
+        <div class="field">
+          <label for="sortSelect">Ordenar por</label>
+          <select id="sortSelect">
+            <option value="insertion:desc">↓ Último adicionado</option>
+            <option value="score:desc">CB Score</option>
+            <option value="total:asc">Valor ⬆</option>
+            <option value="total:desc">Valor ⬇</option>
+            <option value="area:desc">Área</option>
+            <option value="priceM2:asc">R$/m²</option>
+            <option value="rooms:desc">Cômodos</option>
+            <option value="neighborhood:asc">Localização</option>
+            <option value="title:asc">Nome</option>
+          </select>
+        </div>
+
         <button class="btn btn-ghost" id="btnClearFilters">Limpar</button>
       </section>
 
@@ -1526,7 +1543,6 @@
                 <col style="width:140px"><!-- Localização -->
                 <col style="width:82px"> <!-- CB Score -->
                 <col style="width:68px"> <!-- Status -->
-                <col style="width:68px"> <!-- Qualidade -->
                 <col style="width:80px"> <!-- Decisão -->
                 <col style="width:36px"> <!-- Ações -->
               </colgroup>
@@ -1538,9 +1554,8 @@
                   <th data-sort="priceM2">R$/m²</th>
                   <th data-sort="rooms">Cômodos</th>
                   <th data-sort="neighborhood">Localização</th>
-                  <th data-sort="score">CB Score</th>
+                  <th data-sort="score" title="CB Score = (área×10 + quartos×80 + banheiros×45 + vagas×30) ÷ custo total × 100 — pontos por R$100 investido. Maior = melhor custo-benefício.">CB Score ⓘ</th>
                   <th data-sort="status">Status</th>
-                  <th>Qualidade</th>
                   <th data-sort="decisionStatus">Decisão</th>
                   <th>Ações</th>
                 </tr>
@@ -2018,6 +2033,7 @@
       qualityFilter:  $("#qualityFilter"),
       decisionFilter: $("#decisionFilter"),
       riskFilter:     $("#riskFilter"),
+      sortSelect:     $("#sortSelect"),
       modal: $("#modal"),
       propertyForm: $("#propertyForm"),
       toast: $("#toast")
@@ -2060,6 +2076,15 @@
       elements.qualityFilter.addEventListener("change", renderAll);
       elements.decisionFilter.addEventListener("change", renderAll);
       elements.riskFilter.addEventListener("change", renderAll);
+
+      elements.sortSelect.addEventListener("change", () => {
+        const [key, dir] = elements.sortSelect.value.split(':');
+        sortState = { key, direction: dir || 'desc' };
+        renderAll();
+      });
+      // Sync select to initial sortState
+      elements.sortSelect.value = `${sortState.key}:${sortState.direction}`;
+      if (!elements.sortSelect.value) elements.sortSelect.selectedIndex = 0;
 
       elements.propertyForm.addEventListener("submit", saveForm);
 
@@ -2279,6 +2304,13 @@
           th.classList.add(sortState.direction === "asc" ? "sort-asc" : "sort-desc");
         }
       });
+      // Keep dropdown in sync with column-header clicks
+      if (elements.sortSelect) {
+        const val = `${sortState.key}:${sortState.direction}`;
+        if ([...elements.sortSelect.options].some(o => o.value === val)) {
+          elements.sortSelect.value = val;
+        }
+      }
     }
 
     function getSortValue(item, key) {
@@ -2289,6 +2321,7 @@
       if (key === "neighborhood") return `${item.city || ""} ${item.neighborhood || ""}`;
       if (key === "status") return item.status || "";
       if (key === "decisionStatus") return item.decisionStatus || "";
+      if (key === "insertion") return properties.indexOf(item);
       return item[key] ?? null;
     }
 
@@ -2360,12 +2393,18 @@
         const score  = getValueScore(item);
         const barPct = score !== null ? Math.round((score / maxScore) * 100) : 0;
 
+        const _sa  = toNullableNumber(item.area)     || 0;
+        const _sr  = toNullableNumber(item.rooms)    || 0;
+        const _sb  = toNullableNumber(item.bathrooms)|| 0;
+        const _sp  = toNullableNumber(item.parking)  || 0;
+        const _st  = getTotal(item) || 0;
+        const _scoreArgs = `${_sa},${_sr},${_sb},${_sp},${_st}`;
         const scoreCell = score !== null
-          ? `<div class="score-bar-wrap">
+          ? `<div class="score-bar-wrap tip-wrap" onmouseenter="showScoreTip(event,${_scoreArgs})" onmouseleave="hideValueTip()">
                <div class="score-bar"><div class="score-bar-fill" style="width:${barPct}%"></div></div>
                <span class="score-num">${score.toFixed(1)}</span>
              </div>`
-          : `<span class="no-score">—</span>`;
+          : `<span class="no-score tip-wrap" onmouseenter="showScoreTip(event,0,0,0,0,0)" onmouseleave="hideValueTip()">—</span>`;
 
         const tipText = total !== null
           ? `Locação:    ${formatMaybeBRL(item.rent)}\nCondomínio: ${formatMaybeBRL(item.condo)}\nIPTU:       ${formatMaybeBRL(item.iptu)}`
@@ -2378,7 +2417,7 @@
         const comodosStr = `${r}Q · ${b}B · ${v}V`;
 
         const areaStr   = item.area   !== null && item.area   !== undefined ? Math.round(item.area)   + " m²" : "—";
-        const priceM2Str = priceM2   !== null                               ? Math.round(priceM2).toLocaleString("pt-BR") + "/m²" : "—";
+        const priceM2Str = priceM2   !== null                               ? "R$\u00a0" + Math.round(priceM2).toLocaleString("pt-BR") + "/m²" : "—";
 
         const dInfo = distanceInfo(item);
         const distTags = dInfo ? [
@@ -2392,7 +2431,7 @@
               <a class="property-link" href="${escapeAttr(item.url || "#")}" target="_blank" rel="noopener">Ver anúncio ↗</a>
             </td>
             <td class="money total">
-              <span class="tip-wrap" onmouseenter="showValueTip(event,${JSON.stringify(item.rent)},${JSON.stringify(item.condo)},${JSON.stringify(item.iptu)},${JSON.stringify(total)})" onmouseleave="hideValueTip()">${formatMaybeBRL(total)}</span>
+              <span class="tip-wrap" onmouseenter="showValueTip(event,${JSON.stringify(item.rent)},${JSON.stringify(item.condo)},${JSON.stringify(item.iptu)},${JSON.stringify(item.monthlyInsurance)},${JSON.stringify(item.fixedFees)},${JSON.stringify(total)})" onmouseleave="hideValueTip()">${formatMaybeBRL(total)}</span>
             </td>
             <td>${areaStr}</td>
             <td class="money">${priceM2Str}</td>
@@ -2404,7 +2443,6 @@
             </td>
             <td class="score-cell">${scoreCell}</td>
             <td>${statusBadge(item.status)}</td>
-            <td>${qualidadeBadge(item)}</td>
             <td>
               ${decisionBadge(item)}
               ${item.riskLevel ? riskBadge(item) : ''}
@@ -2460,10 +2498,12 @@
 
         // Cost breakdown items
         const bdItems = [
-          { label: 'Locação',  val: item.rent  },
-          { label: 'Condo',    val: item.condo },
-          { label: 'IPTU',     val: item.iptu  },
-        ];
+          { label: 'Locação',  val: item.rent             },
+          { label: 'Condo',    val: item.condo            },
+          { label: 'IPTU',     val: item.iptu             },
+          { label: 'Seguro',   val: item.monthlyInsurance },
+          { label: 'Taxa',     val: item.fixedFees        },
+        ].filter(bd => bd.val != null);
         const bdHtml = bdItems.map((bd, i) => {
           const fVal = bd.val != null
             ? `R$\u00a0${bd.val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
@@ -2476,7 +2516,7 @@
         const chips = [
           item.area != null ? `📐 ${Math.round(item.area)} m²` : null,
           (r !== '—' || b !== '—' || v !== '—') ? `🛏 ${r}Q · ${b}B · ${v}V` : null,
-          priceM2 !== null ? `💰 ${Math.round(priceM2).toLocaleString('pt-BR')}/m²` : null,
+          priceM2 !== null ? `💰 R$\u00a0${Math.round(priceM2).toLocaleString('pt-BR')}/m²` : null,
         ].filter(Boolean).map(c => `<span class="pc-chip">${escapeHtml(c)}</span>`).join('');
 
         return `
@@ -2488,7 +2528,6 @@
                 <h4 class="pc-title">${escapeHtml(item.title || 'Imóvel sem título')}</h4>
                 <div class="pc-badges">
                   ${statusBadge(item.status)}
-                  ${qualidadeBadge(item)}
                 </div>
               </div>
 
@@ -2544,11 +2583,16 @@
         added++;
       });
 
-      if (added) elements.linksInput.value = "";
-      saveData();
-      renderAll();
-      renderLinkList();
-      showToast(added ? `${added} link(s) adicionado(s).` : "Todos os links já estavam na lista.");
+      if (added) {
+        elements.linksInput.value = "";
+        saveData();
+        renderAll();
+        renderLinkList();
+        showToast(`${added} link(s) adicionado(s). Buscando dados...`);
+        tryReadLinks();
+      } else {
+        showToast("Todos os links já estavam na lista.");
+      }
     }
 
     // ─── Link list rendering ────────────────────────────────────────────────
@@ -2581,13 +2625,28 @@
         const q    = getDataQuality(prop);
         const qMap  = { completo: 'ls-ok', parcial: 'ls-skip', pendente: 'ls-pending' };
         const qLabel = { completo: '✓ Completo', parcial: '◑ Parcial', pendente: '○ Pendente' };
+        const FIELD_FORM = [
+          [prop.rent,      'formRent',      'Locação'],
+          [prop.condo,     'formCondo',     'Condomínio'],
+          [prop.area,      'formArea',      'Área'],
+          [prop.rooms,     'formRooms',     'Quartos'],
+          [prop.bathrooms, 'formBathrooms', 'Banheiros'],
+          [prop.parking,   'formParking',   'Vagas'],
+          [prop.iptu,      'formIptu',      'IPTU'],
+        ];
+        const missingFields = FIELD_FORM.filter(([v]) => v === null || v === undefined || v === '' || v === 0);
+        const firstMissingId = missingFields.length ? missingFields[0][1] : null;
+        const missingTip = missingFields.length ? 'Faltam: ' + missingFields.map(([,, l]) => l).join(', ') : '';
+        const badgeClick = (q === 'parcial' || q === 'pendente') && firstMissingId
+          ? `onclick="editPropertyAndFocus('${escapeAttr(id)}','${firstMissingId}')" style="cursor:pointer"`
+          : '';
         return `<div class="link-item" data-url="${escapeAttr(url)}">
           <div class="link-item-body">
             <span class="link-code">#${escapeHtml(id)}</span>
             <span class="link-name" title="${escapeAttr(name)}">${escapeHtml(name)}</span>
             <a href="${escapeAttr(url)}" target="_blank" rel="noopener" class="link-ext" title="Abrir anúncio">↗</a>
           </div>
-          <span class="link-status ${qMap[q] || 'ls-pending'}">${qLabel[q] || '○ Pendente'}</span>
+          <span class="link-status ${qMap[q] || 'ls-pending'}" title="${escapeAttr(missingTip)}" ${badgeClick}>${qLabel[q] || '○ Pendente'}</span>
         </div>`;
       }).join("");
     }
@@ -2615,9 +2674,15 @@
     // ─── Real async fetch via CORS proxy ────────────────────────────────────
 
     async function tryReadLinks() {
-      const links = properties.map((p) => p.url).filter(Boolean);
+      const allWithUrl = properties.filter((p) => p.url);
+      const skipped    = allWithUrl.filter((p) => getDataQuality(p) === 'completo');
+      const toFetch    = allWithUrl.filter((p) => getDataQuality(p) !== 'completo');
+      const links      = toFetch.map((p) => p.url);
+
       if (!links.length) {
-        showToast("Adicione imóveis primeiro.");
+        showToast(skipped.length
+          ? `Todos os ${skipped.length} imóvel(is) já estão completos. Nada a buscar.`
+          : "Adicione imóveis primeiro.");
         return;
       }
 
@@ -2627,45 +2692,95 @@
 
       let enriched = 0;
 
-    const CORS_PROXIES = [
-        // allorigins /get returns JSON {contents:"..."} — most reliable
-        {
-          url:   (u) => "https://api.allorigins.win/get?url=" + encodeURIComponent(u),
-          parse: async (res) => { const j = await res.json(); return j && j.contents ? j.contents : null; }
-        },
-        // codetabs — returns body directly
-        {
-          url:   (u) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u),
-          parse: async (res) => res.text()
-        },
-        // corsproxy.io — returns body directly
+      // Proxies ordered by reliability — each tried in sequence per URL
+      const CORS_PROXIES = [
+        // corsproxy.io — stable, returns body directly
         {
           url:   (u) => "https://corsproxy.io/?url=" + encodeURIComponent(u),
           parse: async (res) => res.text()
         },
+        // allorigins /get — returns JSON {contents:"..."}
+        {
+          url:   (u) => "https://api.allorigins.win/get?url=" + encodeURIComponent(u),
+          parse: async (res) => { const j = await res.json(); return j && j.contents ? j.contents : null; }
+        },
+        // thingproxy — returns body directly
+        {
+          url:   (u) => "https://thingproxy.freeboard.io/fetch/" + u,
+          parse: async (res) => res.text()
+        },
+        // codetabs
+        {
+          url:   (u) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u),
+          parse: async (res) => res.text()
+        },
+        // htmldriven cors-proxy
+        {
+          url:   (u) => "https://cors-proxy.htmldriven.com/?url=" + encodeURIComponent(u),
+          parse: async (res) => res.text()
+        },
       ];
+
+      // Strip tracking query params — only clean canonical URL is needed
+      function cleanUrl(url) { return url.split('?')[0].replace(/\/$/, ''); }
 
       for (const url of links) {
         setLinkStatus(url, "ls-fetching", "⏳ Buscando...");
+        const fetchUrl = cleanUrl(url);  // strip tracking params
         let html = null;
-        for (const proxy of CORS_PROXIES) {
+        let usedJina = false;
+        let usedNextData = false;
+
+        // QuintoAndar: try allorigins first — gets full Next.js HTML with __NEXT_DATA__
+        // containing the complete price breakdown (rentPrice, condoPrice, iptu, totalCost).
+        // Fall back to Jina if allorigins fails (Jina only gives rent + total, not breakdown).
+        if (detectSite(url) === 'quintoandar') {
           try {
-            const res = await fetch(proxy.url(url), { signal: AbortSignal.timeout(14000) });
-            if (!res.ok) continue;
-            const body = await proxy.parse(res);
-            if (body && body.length > 200) { html = body; break; }
-          } catch { /* try next proxy */ }
+            const aoRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(fetchUrl), { signal: AbortSignal.timeout(20000) });
+            if (aoRes.ok) {
+              const body = await aoRes.text();
+              if (body && body.includes('__NEXT_DATA__')) { html = body; usedNextData = true; }
+            }
+          } catch { /* fall through to Jina */ }
+
+          if (!html) {
+            try {
+              const jinaRes = await fetch('https://r.jina.ai/' + fetchUrl, { signal: AbortSignal.timeout(22000) });
+              if (jinaRes.ok) {
+                const md = await jinaRes.text();
+                if (md && md.length > 500) { html = md; usedJina = true; }
+              }
+            } catch { /* fall through to proxies */ }
+          }
+        }
+
+        // Standard CORS proxy fallback (Netimoveis or Jina failed)
+        if (!html) {
+          for (const proxy of CORS_PROXIES) {
+            try {
+              const res = await fetch(proxy.url(fetchUrl), { signal: AbortSignal.timeout(14000) });
+              if (!res.ok) continue;
+              const body = await proxy.parse(res);
+              if (body && body.length > 200) { html = body; break; }
+            } catch { /* try next proxy */ }
+          }
         }
         try {
           if (!html) throw new Error("Todos os proxies falharam");
 
-          const parsed = parseNetimoveisHtml(html, url);
+          const parsed = detectSite(url) === 'quintoandar'
+            ? (usedJina ? parseQuintoAndarJina(html, url) : parseQuintoAndarHtml(html, url))
+            : parseNetimoveisHtml(html, url);
           const id     = getIdFromUrl(url);
           const existing = properties.find((p) => p.id === id || p.url === url);
 
           if (existing) {
             const incoming = { ...parsed };
-            const merged   = smartMerge(existing, incoming);
+            // Use force-merge when data came from __NEXT_DATA__ (authoritative source)
+            // to correct any previously misread values (e.g. condo fetched wrong by old parser).
+            const merged = usedNextData
+              ? forceMergeDataFields(existing, incoming)
+              : smartMerge(existing, incoming);
             const changed  = JSON.stringify(merged) !== JSON.stringify(existing);
             if (changed) {
               properties[properties.indexOf(existing)] = merged;
@@ -2692,7 +2807,15 @@
       renderLinkList();
       elements.btnTryRead.disabled = false;
       elements.btnTryRead.textContent = "🔍 Buscar dados online";
-      showToast(enriched ? `${enriched} imóvel(is) atualizado(s).` : "Nenhum campo novo encontrado.");
+      const skipMsg = skipped.length ? ` (${skipped.length} completo(s) ignorado(s))` : "";
+      showToast(enriched ? `${enriched} imóvel(is) atualizado(s).${skipMsg}` : `Nenhum campo novo encontrado.${skipMsg}`);
+    }
+
+    // ─── Site detection ──────────────────────────────────────────────────────
+
+    function detectSite(url) {
+      if (/quintoandar\.com\.br/i.test(url)) return 'quintoandar';
+      return 'netimoveis';
     }
 
     // Parse HTML response from Netimoveis via DOMParser + targeted regex
@@ -2743,6 +2866,273 @@
       return { rent, condo, iptu, area, rooms, bathrooms, parking, neighborhood, city, features, description };
     }
 
+    // Parse HTML response from QuintoAndar (Next.js SPA — extracts __NEXT_DATA__ JSON)
+    function parseQuintoAndarHtml(html, url) {
+      const urlData = parseQuintoAndarUrl(url);
+
+      // ─ Helper: deep-search a JSON tree for any object that has a given key set ─
+      function findDeep(obj, keys, maxDepth = 8) {
+        if (!obj || typeof obj !== 'object' || maxDepth < 0) return null;
+        // Check if this object has at least 2 of the target keys with non-null values
+        const hits = keys.filter(k => obj[k] !== undefined && obj[k] !== null);
+        if (hits.length >= 2) return obj;
+        for (const val of Object.values(obj)) {
+          const found = findDeep(val, keys, maxDepth - 1);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      // ─ Try __NEXT_DATA__ JSON ─────────────────────────────────────────────
+      const ndMatch = html.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]+?)<\/script>/);
+      if (ndMatch) {
+        try {
+          const nd = JSON.parse(ndMatch[1]);
+
+          // QuintoAndar uses Apollo cache — properties are stored with
+          // keys like "House:895407006" or "listing:..." inside apolloState / apolloCache
+          const apolloCache =
+            nd?.props?.pageProps?.apolloCache ||
+            nd?.props?.pageProps?.apolloState ||
+            nd?.props?.pageProps?.initialApolloCache ||
+            nd?.props?.apolloCache;
+
+          let p = null;
+
+          if (apolloCache) {
+            // Find the house/listing entry in Apollo cache
+            const HOUSE_KEYS = ['rentPrice', 'rent', 'bedrooms', 'area', 'parkingSpaces', 'neighborhood'];
+            for (const [key, val] of Object.entries(apolloCache)) {
+              if ((key.startsWith('House:') || key.startsWith('Listing:') || key.startsWith('listing:')) && val && typeof val === 'object') {
+                p = val; break;
+              }
+            }
+            // Fallback: deep search
+            if (!p) p = findDeep(apolloCache, HOUSE_KEYS);
+          }
+
+          // Direct pageProps paths
+          if (!p) {
+            p = findDeep(
+              nd?.props?.pageProps,
+              ['rentPrice', 'rent', 'bedrooms', 'area', 'parkingSpaces', 'neighborhood']
+            );
+          }
+
+          if (p) {
+            const num = (v) => (v !== undefined && v !== null && v !== '') ? Number(v) || null : null;
+            const brlVal = (v) => typeof v === 'number' ? v : (typeof v === 'string' ? parseBRL(v) : null);
+
+            const rent        = brlVal(p.rentPrice ?? p.rent ?? p.price ?? p.rentalPrice);
+            const condo       = brlVal(p.condoPrice ?? p.condominiumFee ?? p.condo ?? p.condominium);
+            const iptu        = brlVal(p.iptu ?? p.iptuValue);
+            const totalCost   = brlVal(p.totalCost ?? p.total);
+            const insurance   = brlVal(p.fireInsurance ?? p.insurance ?? p.seguroIncendio);
+            let   serviceFee  = brlVal(p.adminFee ?? p.serviceFee ?? p.taxaServico ?? p.administrativeFee);
+            // If individual fees not available but totalCost is, store remainder as fixedFees
+            if (serviceFee === null && insurance === null && totalCost !== null && rent !== null) {
+              const knownCosts = (rent || 0) + (condo || 0) + (iptu || 0);
+              const remainder  = Math.round(totalCost - knownCosts);
+              if (remainder > 1) serviceFee = remainder;
+            }
+            const area        = num(p.area ?? p.usefulArea ?? p.totalArea);
+            const rooms       = num(p.bedrooms ?? p.rooms ?? p.quartos);
+            const bathrooms   = num(p.bathrooms ?? p.banheiros);
+            const parking     = num(p.parkingSpaces ?? p.vagas ?? p.garagens);
+            const neighborhood = p.neighborhood ?? p.bairro ?? p.neighbourhoodName ?? urlData.neighborhood;
+            const city        = p.city ?? p.cidade ?? urlData.city;
+            const address     = (() => {
+              const raw = p.address ?? p.streetAddress ?? p.logradouro ?? null;
+              if (!raw) return null;
+              if (typeof raw === 'string') return raw;
+              // QA returns address as object: {street, number, complement, neighborhood, city}
+              if (typeof raw === 'object') {
+                return [raw.street ?? raw.streetName ?? raw.logradouro,
+                        raw.number ?? raw.numero,
+                        raw.complement ?? raw.complemento,
+                        raw.neighborhood ?? raw.bairro,
+                        raw.city ?? raw.cidade]
+                  .filter(v => v && String(v).trim())
+                  .join(', ');
+              }
+              return String(raw);
+            })();
+            const description = typeof p.description === 'string' ? p.description.slice(0, 400) : null;
+
+            // Amenities — QuintoAndar stores as array of {name} objects or string list
+            let features = null;
+            const rawAm = p.amenities ?? p.highlights ?? p.features;
+            if (Array.isArray(rawAm)) {
+              features = rawAm
+                .map(a => typeof a === 'string' ? a : (a?.name ?? a?.label ?? ''))
+                .filter(Boolean).slice(0, 20).join('; ');
+            } else if (typeof rawAm === 'string') {
+              features = rawAm;
+            }
+
+            // Pet / floor / furnished from top-level flags
+            const extras = [];
+            if (p.petFriendly    === true  || p.acceptsPets === true)  extras.push('Aceita pet');
+            if (p.petFriendly    === false || p.acceptsPets === false)  extras.push('Não aceita pet');
+            if (p.furnished      === true  || p.isFurnished === true)  extras.push('Mobiliado');
+            if (p.furnished      === false || p.isFurnished === false)  extras.push('Sem mobília');
+            if (p.floor !== undefined && p.floor !== null)              extras.push(`${p.floor}º andar`);
+            if (p.laundry        === true  || p.hasLaundry === true)   extras.push('Área de serviço');
+            if (extras.length) features = [features, extras.join('; ')].filter(Boolean).join('; ');
+
+            return {
+              rent, condo, iptu, area, rooms, bathrooms, parking,
+              neighborhood, city, address, description, features,
+              monthlyInsurance: insurance,
+              fixedFees: serviceFee,
+            };
+          }
+        } catch(e) { console.warn('[QA JSON]', e.message); }
+      }
+
+      // ─ Robust regex fallback on rendered text ─────────────────────────────
+      const parser2 = new DOMParser();
+      const doc     = parser2.parseFromString(html, 'text/html');
+      const text    = doc.body ? doc.body.textContent : html;
+
+      // BRL pattern — matches "Aluguel R$ 1.600" / "Aluguel\nR$ 1.600,00"
+      const brl = (pat) => {
+        const m = text.match(new RegExp(pat + '[\\s\\S]{0,30}?R\\$\\s*([\\d.]+,\\d{2})', 'i'));
+        return m ? parseBRL(m[1]) : null;
+      };
+      // Simpler: label followed by value on same/next line
+      const brlAfter = (label) => {
+        const m = text.match(new RegExp(label + '[\\s:]*R\\$?\\s*([\\d.]+,\\d{2})', 'i'));
+        return m ? parseBRL(m[1]) : null;
+      };
+
+      const rent      = brlAfter('Aluguel') || brl('Aluguel');
+      const condo     = brlAfter('Condom[ií]nio') || brl('Condom[ií]nio');
+      const iptu      = brlAfter('IPTU');
+      const insurance = brlAfter('Seguro inc[eê]ndio') || brlAfter('Seguro');
+      const serviceFee = brlAfter('Taxa de servi[çc]o') || brlAfter('Taxa');
+
+      const areaM     = text.match(/(\d+)\s*m(?:²|\u00b2)\b/);
+      const area      = areaM ? parseInt(areaM[1]) : null;
+      const roomsM    = text.match(/(\d+)\s*quarto/i);
+      const rooms     = roomsM ? parseInt(roomsM[1]) : null;
+      const bathM     = text.match(/(\d+)\s*banh/i);
+      const bathrooms = bathM ? parseInt(bathM[1]) : null;
+      const parkM     = text.match(/(\d+)\s*vaga/i);
+      const parking   = parkM ? parseInt(parkM[1]) : null;
+
+      // Address: QuintoAndar shows "Rua Fulano, Bairro, Cidade"
+      const addrM = text.match(/(Rua|Av(?:enida)?|Pra[çc]a|Alameda|Travessa|Rodovia)[^,\n]{3,60}/i);
+      const address = addrM ? addrM[0].trim() : null;
+
+      // Extras from feature badges
+      const petFriendly = /Aceita pet/i.test(text);
+      const noFurnished = /Sem mobil/i.test(text);
+      const hasFurnished = /Mobiliado/i.test(text);
+      const hasLaundry = /[AÁ]rea de servi[çc]o/i.test(text);
+      const floorM = text.match(/(\d+)[ºo]\s*(?:a\s*\d+[ºo]\s*)?andar/i);
+
+      const extraParts = [];
+      if (petFriendly) extraParts.push('Aceita pet');
+      if (hasFurnished) extraParts.push('Mobiliado');
+      else if (noFurnished) extraParts.push('Sem mobília');
+      if (hasLaundry) extraParts.push('Área de serviço');
+      if (floorM) extraParts.push(`${floorM[1]}º andar`);
+
+      return {
+        rent, condo, iptu, area, rooms, bathrooms, parking,
+        neighborhood: urlData.neighborhood,
+        city: urlData.city,
+        address,
+        features: extraParts.length ? extraParts.join('; ') : null,
+        description: null,
+        monthlyInsurance: insurance,
+        fixedFees: serviceFee,
+      };
+    }
+
+    // ─── QuintoAndar: parse Jina AI Reader markdown response ─────────────────
+    // Jina renders the SPA and returns clean markdown with all price fields visible.
+    function parseQuintoAndarJina(text, url) {
+      const urlData = parseQuintoAndarUrl(url);
+
+      // Truncate to listing section only — Jina markdown may include similar listings below
+      const listingText = text.split(/Similares na mesma regi[aã]o|Compare com im[oó]veis|Veja mais im[oó]veis/i)[0];
+
+      // Flexible BRL — same-line only: [^\n]{0,60} prevents grabbing values from nearby lines
+      function brlFromText(label, src) {
+        const haystack = src || listingText;
+        const re = new RegExp(label + '[^\\n]{0,60}?R\\$\\s*([\\d.]+(?:,\\d{1,2})?)', 'i');
+        const m = haystack.match(re);
+        return m ? parseBRL(m[1]) : null;
+      }
+
+      // Returns 0 if label line contains "Incluso"/"Incluído", else parses BRL
+      function fieldOrIncluso(label) {
+        const incRe = new RegExp(label + '[^\\n]{0,40}\\b[Ii]nclus', 'i');
+        if (incRe.test(listingText)) return 0;
+        return brlFromText(label);
+      }
+
+      const rent       = brlFromText('Aluguel');
+      const condo      = fieldOrIncluso('Condom[ií]nio');
+      const iptu       = fieldOrIncluso('IPTU');
+      const insurance  = brlFromText('Seguro inc[eê]ndio') || brlFromText('Seguro');
+      const serviceFee = brlFromText('Taxa de servi[çc]o');
+
+      const areaM    = listingText.match(/(\d+)\s*m[²\u00b2]/);
+      const area     = areaM ? parseInt(areaM[1]) : null;
+      const roomsM   = listingText.match(/(\d+)\s*quarto/i);
+      const rooms    = roomsM ? parseInt(roomsM[1]) : null;
+      const bathM    = listingText.match(/(\d+)\s*banh/i);
+      const bathrooms = bathM ? parseInt(bathM[1]) : null;
+      const parkM    = listingText.match(/(\d+)\s*vaga/i);
+      const parking  = parkM ? parseInt(parkM[1]) : null;
+
+      // Address — Jina shows "#### Rua Fulano..." as a heading
+      const addrM = text.match(/####\s+((?:Rua|Av(?:enida)?|Pra[çc]a|Alameda|Travessa|Rodovia)[^\n#]{3,60})/i)
+                 || text.match(/((?:Rua|Av(?:enida)?|Pra[çc]a|Alameda|Travessa|Rodovia)[^\n,]{3,60})/i);
+      const address = addrM ? addrM[1].trim() : null;
+
+      // Description — long paragraph block
+      const descM = text.match(/(?:Localizado|Este im[oó]vel|Apartamento|Casa)[^\n]{20,}([\s\S]{100,500}?)(?:\n\n|\n#)/i);
+      const description = descM ? descM[0].replace(/\n+/g, ' ').trim().slice(0, 400) : null;
+
+      // Available features section
+      const featSection = text.match(/[Ii]tens\s+dispon[ií]veis([\s\S]{0,600}?)(?:[Ii]tens indispon|###)/);
+      let features = null;
+      if (featSection) {
+        const items = featSection[1]
+          .split(/\n+/)
+          .map(s => s.replace(/^[*#\-\s]+/, '').trim())
+          .filter(s => s.length > 2 && s.length < 60 && !/dispon/i.test(s));
+        if (items.length) features = items.slice(0, 15).join('; ');
+      }
+
+      // Extra badges
+      const extras = [];
+      if (/Aceita pet/i.test(text))                       extras.push('Aceita pet');
+      else if (/N[ãa]o aceita pet/i.test(text))           extras.push('Não aceita pet');
+      if (/\bMobiliado\b/i.test(text) && !/Sem mobil/i.test(text)) extras.push('Mobiliado');
+      else if (/Sem mobil/i.test(text))                   extras.push('Sem mobília');
+      if (/[AÁ]rea de servi[çc]o/i.test(text))           extras.push('Área de serviço');
+      const floorM = text.match(/(\d+)[°º][^a-z\n]*(?:a\s*\d+[°º][^a-z\n]*)?andar/i);
+      if (floorM) extras.push(`${floorM[1]}º andar`);
+
+      const allFeatures = [features, extras.length ? extras.join('; ') : null].filter(Boolean).join('; ') || null;
+
+      return {
+        rent, condo, iptu, area, rooms, bathrooms, parking,
+        neighborhood: urlData.neighborhood,
+        city: urlData.city,
+        address,
+        description,
+        features: allFeatures,
+        monthlyInsurance: insurance,
+        fixedFees: serviceFee,
+      };
+    }
+
     // Merge: only overwrites fields that are empty / null / "A conferir" in the existing record.
     function smartMerge(existing, incoming) {
       const result = { ...existing };
@@ -2754,6 +3144,21 @@
           v === null || v === undefined || v === "" ||
           (typeof v === "string" && v.trim().toLowerCase() === "a conferir");
         if (isEmpty) result[key] = incoming[key];
+      });
+      return result;
+    }
+
+    // Force-update numeric/data fields from a reliable source (__NEXT_DATA__).
+    // Preserves user-entered decision/annotation fields.
+    function forceMergeDataFields(existing, incoming) {
+      const result = smartMerge(existing, incoming);
+      const FORCE = ['rent', 'condo', 'iptu', 'area', 'rooms', 'bathrooms',
+                     'parking', 'monthlyInsurance', 'fixedFees',
+                     'neighborhood', 'city', 'address'];
+      FORCE.forEach(key => {
+        if (incoming[key] !== null && incoming[key] !== undefined) {
+          result[key] = incoming[key];
+        }
       });
       return result;
     }
@@ -2823,8 +3228,9 @@
     }
 
     function buildFallbackProperty(url) {
-      const id = getIdFromUrl(url);
-      const parsed = parseNetimoveisUrl(url);
+      const id   = getIdFromUrl(url);
+      const site = detectSite(url);
+      const parsed = site === 'quintoandar' ? parseQuintoAndarUrl(url) : parseNetimoveisUrl(url);
 
       return {
         id,
@@ -2883,10 +3289,44 @@
 
       return {
         title: `${type}${rooms ? ` ${rooms} quarto${rooms > 1 ? "s" : ""}` : ""}${neighborhood ? ` no ${neighborhood}` : ""}`,
-        type,
-        city,
-        neighborhood,
+        type, city, neighborhood,
         address: [neighborhood, city ? `${city}/MG` : ""].filter(Boolean).join(" - "),
+        rooms
+      };
+    }
+
+    function parseQuintoAndarUrl(url) {
+      // URL pattern: /imovel/{ID}/alugar/{type}-{N}-quartos-{neighborhood-tokens}-{city}
+      const clean = decodeURIComponent(url).split('?')[0];
+      const slugMatch = clean.match(/\/alugar\/([^/]+)/);
+      const slug = slugMatch ? slugMatch[1] : '';
+
+      const type       = slug.includes('casa') ? 'Casa' : slug.includes('apartamento') ? 'Apartamento' : 'Imóvel';
+      const roomsMatch = slug.match(/(\d+)-quartos?/);
+      const rooms      = roomsMatch ? Number(roomsMatch[1]) : null;
+
+      const KNOWN_CITIES = ['belo-horizonte', 'contagem', 'betim', 'ribeirao-das-neves', 'nova-lima'];
+      const CITY_LABELS  = { 'belo-horizonte': 'Belo Horizonte', 'contagem': 'Contagem', 'betim': 'Betim', 'ribeirao-das-neves': 'Ribeirão das Neves', 'nova-lima': 'Nova Lima' };
+
+      let city = '';
+      let citySlug = '';
+      for (const c of KNOWN_CITIES) {
+        if (slug.endsWith('-' + c) || slug.includes('-' + c + '-')) { citySlug = c; city = CITY_LABELS[c]; break; }
+      }
+
+      let neighborhood = '';
+      if (citySlug) {
+        const before = slug.split('-' + citySlug)[0];
+        // Remove type prefix and rooms to isolate neighborhood tokens
+        const noType  = before.replace(/^(apartamento|casa|studio|flat|kitnet)\b-?/, '');
+        const noRooms = noType.replace(/(\d+-quarto[s]?-)/, '');
+        neighborhood  = titleCase(noRooms.replace(/-/g, ' ').trim());
+      }
+
+      return {
+        title: `${type}${rooms ? ` ${rooms} quarto${rooms > 1 ? 's' : ''}` : ''}${neighborhood ? ` no ${neighborhood}` : ''}`,
+        type, city, neighborhood,
+        address: [neighborhood, city ? `${city}/MG` : ''].filter(Boolean).join(' - '),
         rooms
       };
     }
@@ -3153,19 +3593,18 @@
     }
 
     function getTotal(item) {
-      const rent  = toNullableNumber(item.rent);
+      // Full recurring monthly cost: rent + condo + iptu + insurance + service fees
+      const rent = toNullableNumber(item.rent);
       const condo = toNullableNumber(item.condo);
       const iptu  = toNullableNumber(item.iptu);
+      const ins   = toNullableNumber(item.monthlyInsurance);
+      const fees  = toNullableNumber(item.fixedFees);
       if (rent === null && condo === null) return null;
-      return (rent || 0) + (condo || 0) + (iptu || 0);
+      return (rent || 0) + (condo || 0) + (iptu || 0) + (ins || 0) + (fees || 0);
     }
 
     function getRealMonthlyCost(item) {
-      const base  = getTotal(item);
-      const fixed = toNullableNumber(item.fixedFees);
-      const ins   = toNullableNumber(item.monthlyInsurance);
-      if (base === null && fixed === null && ins === null) return null;
-      return (base || 0) + (fixed || 0) + (ins || 0);
+      return getTotal(item);
     }
 
     function getAnnualCost(item) {
@@ -3253,6 +3692,10 @@
 
     function getIdFromUrl(url) {
       const clean = url.split("?")[0].replace(/\/$/, "");
+      // QuintoAndar: /imovel/{ID}/alugar/... or /imovel/{ID}
+      const qaMatch = clean.match(/quintoandar\.com\.br\/imovel\/(\d+)/);
+      if (qaMatch) return `qa-${qaMatch[1]}`;
+      // Netimoveis: slug/{ID} at end
       const match = clean.match(/\/(\d+)$/);
       return match ? match[1] : createId();
     }
@@ -3335,20 +3778,63 @@
     // ─── Value tooltip (body-level, avoids table overflow clipping) ──────────
     const _vt = (() => { const el = document.createElement('div'); el.className = 'value-tip'; document.body.appendChild(el); return el; })();
 
-    function showValueTip(e, rent, condo, iptu, total) {
-      const fmt = (v) => v !== null && v !== undefined ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
+    function showValueTip(e, rent, condo, iptu, insurance, fees, total) {
+      const fmt = (v) => v !== null && v !== undefined ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : null;
+      const row = (label, v) => fmt(v) ? `<div class="value-tip-row"><span>${label}</span><strong>${fmt(v)}</strong></div>` : '';
       _vt.innerHTML = `
-        <div class="value-tip-row"><span>Locação</span><strong>${fmt(rent)}</strong></div>
-        <div class="value-tip-row"><span>Condomínio</span><strong>${fmt(condo)}</strong></div>
-        <div class="value-tip-row"><span>IPTU</span><strong>${fmt(iptu)}</strong></div>
+        ${row('Locação', rent)}
+        ${row('Condomínio', condo)}
+        ${row('IPTU', iptu)}
+        ${row('Seguro incêndio', insurance)}
+        ${row('Taxa de serviço', fees)}
         <hr class="value-tip-sep">
-        <div class="value-tip-total"><span>Total</span><strong>${fmt(total)}</strong></div>
+        <div class="value-tip-total"><span>Total</span><strong>${fmt(total) || '—'}</strong></div>
       `;
       _posValueTip(e);
       _vt.classList.add('visible');
     }
 
     function hideValueTip() { _vt.classList.remove('visible'); }
+
+    function showScoreTip(e, area, rooms, baths, park, total) {
+      const fmtN = (v) => Number(v).toLocaleString('pt-BR');
+      const fmtBRL = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      if (!total) {
+        _vt.innerHTML = `<div class="value-tip-row" style="white-space:nowrap"><span>Dados insuficientes</span></div>
+          <div class="value-tip-row" style="font-size:11px;opacity:.7"><span>Preencha custo total + área ou quartos</span></div>`;
+      } else {
+        const pts = (area*10) + (rooms*80) + (baths*45) + (park*30);
+        const score = pts / total * 100;
+        const row = (label, mult, val, pts_) =>
+          `<div class="value-tip-row"><span>${label} × ${mult}</span><strong>${fmtN(val*mult)} pts</strong></div>`;
+        _vt.innerHTML = `
+          ${row('Área', 10, area, area*10)}
+          ${row('Quartos', 80, rooms, rooms*80)}
+          ${row('Banheiros', 45, baths, baths*45)}
+          ${row('Vagas', 30, park, park*30)}
+          <hr class="value-tip-sep">
+          <div class="value-tip-row"><span>Total pontos</span><strong>${fmtN(pts)} pts</strong></div>
+          <div class="value-tip-row"><span>Custo/mês</span><strong>${fmtBRL(total)}</strong></div>
+          <hr class="value-tip-sep">
+          <div class="value-tip-total"><span>CB Score</span><strong>${score.toFixed(1)} pts/R$100</strong></div>
+        `;
+      }
+      _posValueTip(e);
+      _vt.classList.add('visible');
+    }
+
+    function editPropertyAndFocus(id, fieldId) {
+      editProperty(id);
+      setTimeout(() => {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        el.focus();
+        el.select && el.select();
+        el.style.outline = '2px solid var(--accent)';
+        setTimeout(() => { el.style.outline = ''; }, 1800);
+      }, 120);
+    }
 
     function _posValueTip(e) {
       const r   = e.target.getBoundingClientRect();
