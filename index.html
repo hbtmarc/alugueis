@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparativo de Aluguéis</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🏠</text></svg>">
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-2: #f9fafc;
+      --text: #182235;
+      --muted: #6f7b8f;
+      --line: #e3e8f2;
+      --primary: #315cff;
+      --primary-2: #e9efff;
+      --good: #0d8b5f;
+      --warning: #b7791f;
+      --danger: #c24141;
+      --shadow: 0 22px 60px rgba(16, 24, 40, 0.10);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --max: 1440px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    html, body {
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(49, 92, 255, 0.12), transparent 30%),
+        radial-gradient(circle at top right, rgba(13, 139, 95, 0.10), transparent 28%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(16px);
+      background: rgba(244, 246, 251, 0.78);
+      border-bottom: 1px solid rgba(227, 232, 242, 0.78);
+    }
+
+    .topbar-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 10px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      background: linear-gradient(135deg, var(--primary), #0b8f68);
+      color: white;
+      box-shadow: 0 6px 16px rgba(49, 92, 255, 0.24);
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand p {
+      display: none;
+    }
+
+    .nav-actions {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .container {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 22px 48px;
+    }
+
+    .hero {
+      display: block;
+    }
+
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-card,
+    .panel,
+    .stat-card,
+    .modal-card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(227, 232, 242, 0.95);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 22px 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -50px;
+      bottom: -50px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(49, 92, 255, 0.06);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--primary-2);
+      color: #2448c8;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .hero h2 {
+      margin: 10px 0 6px;
+      font-size: clamp(18px, 2vw, 24px);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 550px;
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: #fff9e8;
+      color: #7c520f;
+      border: 1px solid #f3dfab;
+      line-height: 1.5;
+      font-size: 12px;
+    }
+
+    .input-panel {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ip-section {
+      padding: 16px 18px;
+    }
+
+    .ip-section + .ip-section {
+      border-top: 1px solid var(--line);
+    }
+
+    .ip-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .ip-label {
+      font-weight: 800;
+      font-size: 13px;
+      display: block;
+    }
+
+    .ip-sub {
+      font-size: 11px;
+      color: var(--muted);
+      display: block;
+      margin-top: 1px;
+    }
+
+    .ip-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .ip-input-row textarea {
+      flex: 1;
+      min-height: 72px;
+    }
+
+    .ip-btn-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fbfcff;
+      color: var(--text);
+      outline: none;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: rgba(49, 92, 255, 0.55);
+      box-shadow: 0 0 0 4px rgba(49, 92, 255, 0.10);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+      min-height: 38px;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(49, 92, 255, 0.24);
+    }
+
+    .btn-secondary {
+      background: #eff3fb;
+      color: #263650;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #263650;
+      border: 1px solid var(--line);
+    }
+
+    .btn-danger {
+      background: #fff0f0;
+      color: var(--danger);
+      border: 1px solid #ffd0d0;
+    }
+
+    .btn-small {
+      padding: 7px 10px;
+      min-height: 32px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .link-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .link-list-empty {
+      padding: 14px 10px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      background: #f9fafd;
+      border-radius: 10px;
+      border: 1px dashed var(--line);
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f9fafd;
+      font-size: 12px;
+      min-width: 0;
+    }
+
+    .link-item-body {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .link-code {
+      flex-shrink: 0;
+      font-weight: 800;
+      font-size: 11px;
+      color: var(--primary);
+      background: var(--primary-2);
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    .link-name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .link-ext {
+      flex-shrink: 0;
+      color: var(--muted);
+      font-size: 11px;
+      text-decoration: none;
+    }
+    .link-ext:hover { color: var(--primary); }
+
+    .link-status {
+      flex-shrink: 0;
+      padding: 3px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .ls-pending  { background: #f2f2f2; color: #888; }
+    .ls-fetching { background: #e8eeff; color: #315cff; }
+    .ls-ok       { background: #e9f8f2; color: #0d7a55; }
+    .ls-skip     { background: #f5f5f5; color: #999; }
+    .ls-error    { background: #fff0f0; color: var(--danger); }
+
+    .stats {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .stats .stat-card.top-card {
+      border-left: 3px solid var(--primary);
+      background: linear-gradient(135deg, rgba(49,92,255,0.05) 0%, rgba(255,255,255,0.92) 70%);
+    }
+
+    .stats .stat-card.top-card:nth-child(6) { border-left-color: #0d8b5f; }
+    .stats .stat-card.top-card:nth-child(7) { border-left-color: #b7791f; }
+
+    .stat-top-rank {
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-score {
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stat-card {
+      padding: 14px 16px;
+      box-shadow: 0 8px 20px rgba(16, 24, 40, 0.06);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      margin-top: 6px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .stat-hint {
+      margin-top: auto;
+      padding-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      align-items: flex-end;
+    }
+
+    .toolbar .field {
+      flex: 1 1 130px;
+    }
+
+    .toolbar .field:first-child {
+      flex: 2 1 200px;
+    }
+
+    .toolbar > .btn {
+      flex: 0 0 auto;
+      align-self: flex-end;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fbfcff;
+      color: var(--text);
+      border-radius: 10px;
+      min-height: 38px;
+      padding: 8px 11px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .main-grid {
+      margin-top: 18px;
+    }
+
+    .table-panel {
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .panel-title {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .panel-title p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      min-width: 960px;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      text-align: left;
+      font-size: 12px;
+      overflow: hidden;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #f1f4fb;
+      color: #4a5870;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 2px solid #d4daec;
+      box-shadow: 0 1px 0 #d4daec;
+    }
+
+    tbody tr:hover {
+      background: #fbfdff;
+    }
+
+    .property-title {
+      font-weight: 800;
+      line-height: 1.3;
+      font-size: 12px;
+      word-break: break-word;
+    }
+
+    .property-link {
+      display: inline-block;
+      margin-top: 4px;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      opacity: 0.85;
+    }
+
+    .property-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    .money {
+      font-weight: 800;
+      color: #142033;
+      white-space: nowrap;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .total {
+      color: var(--good);
+      font-size: 13px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eff3fb;
+      color: #4a5870;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.ok        { background: #e9f8f2; color: var(--good); }
+    .badge.warn       { background: #fff7df; color: var(--warning); }
+    .badge.miss       { background: #f5f5f5; color: #888; }
+    .badge.completo   { background: #e9f8f2; color: #0d7a55; }
+    .badge.parcial    { background: #fff7df; color: #b7791f; }
+    .badge.pendente   { background: #f2f2f2; color: #777; }
+
+    .features {
+      font-size: 12px;
+      color: #435069;
+      line-height: 1.4;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    /* Sort arrows — only on sortable columns */
+    th[data-sort]::after           { content: ' ⇅'; opacity: 0.28; font-size: 10px; }
+    th[data-sort].sort-asc::after  { content: ' ↑'; color: var(--primary); opacity: 1; }
+    th[data-sort].sort-desc::after { content: ' ↓'; color: var(--primary); opacity: 1; }
+
+    /* CB Score bar */
+    .score-cell { vertical-align: middle; }
+    .score-bar-wrap { display: flex; align-items: center; gap: 6px; }
+    .score-bar {
+      flex: 1;
+      height: 6px;
+      background: #e8edf6;
+      border-radius: 99px;
+      overflow: hidden;
+      min-width: 30px;
+    }
+    .score-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #315cff 0%, #4fd1c5 100%);
+      border-radius: 99px;
+    }
+    .score-num { font-size: 11px; font-weight: 700; color: #315cff; white-space: nowrap; }
+    .no-score  { color: var(--muted); font-size: 13px; }
+
+    /* Value breakdown tooltip – body-level, not subject to table overflow clipping */
+    .value-tip {
+      position: fixed;
+      z-index: 9999;
+      background: #1a2340;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      pointer-events: none;
+      min-width: 190px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+    .value-tip.visible { opacity: 1; }
+    .value-tip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 12px;
+      padding: 2px 0;
+      color: rgba(255,255,255,0.75);
+    }
+    .value-tip-row strong { color: #fff; font-weight: 600; }
+    .value-tip-sep {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      margin: 5px 0;
+    }
+    .value-tip-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 12px;
+      padding: 2px 0;
+      color: #fff;
+      font-weight: 700;
+    }
+    .tip-wrap { cursor: default; }
+
+    /* Pencil icon action button */
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      padding: 3px 5px;
+      border-radius: 4px;
+      color: #7a8aaa;
+      transition: color 0.12s;
+      line-height: 1;
+    }
+    .btn-icon:hover { color: var(--primary); }
+
+    /* Cômodos compact cell */
+    .comodos { font-size: 12px; white-space: nowrap; text-align: center; }
+
+    /* Distance tags */
+    .dist-tag { font-size: 10px; color: #7d9bb5; }
+
+    /* Mobile collapse detail panel */
+    .btn-detail-toggle {
+      font-size: 11px;
+      padding: 2px 8px;
+      border: 1px solid #d0d9ee;
+      border-radius: 4px;
+      background: #f7f8fc;
+      color: var(--primary);
+      cursor: pointer;
+    }
+    .card-detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      padding: 8px 0 4px;
+      border-top: 1px solid #edf0f7;
+    }
+
+    .description { display: none; }
+
+
+
+
+    .empty {
+      padding: 46px 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 18, 32, 0.52);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 80;
+    }
+
+    .modal.is-open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(980px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      padding: 22px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid .span-2 {
+      grid-column: span 2;
+    }
+
+    .form-grid .span-3 {
+      grid-column: span 3;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 100;
+      background: #142033;
+      color: #fff;
+      padding: 13px 15px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      max-width: min(440px, calc(100vw - 40px));
+      display: none;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .toast.show {
+      display: block;
+      animation: toast-in 0.2s ease;
+    }
+
+    @keyframes toast-in {
+      from {
+        transform: translateY(8px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .cards-mobile {
+      display: none;
+      margin-top: 10px;
+      gap: 12px;
+    }
+
+    .property-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+    }
+
+    .property-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .property-card h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.3;
+      flex: 1 1 auto;
+    }
+
+    .card-location {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .card-total {
+      background: linear-gradient(135deg, #e9efff, #eaf8f2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-total-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .card-total-value {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--good);
+      letter-spacing: -0.02em;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .card-values {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .mini-value {
+      padding: 9px 10px;
+      background: #f8faff;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+
+    .mini-value span {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mini-value strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 13px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .card-actions .btn {
+      flex: 1;
+    }
+
+    @media (max-width: 1080px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      th {
+        top: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner {
+        padding: 10px 14px;
+        gap: 8px;
+      }
+
+      .nav-actions {
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .nav-actions .btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+
+      .btn-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .container {
+        padding: 14px 12px 40px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .toolbar {
+        gap: 8px;
+      }
+
+      .toolbar .field {
+        flex: 1 1 calc(50% - 8px);
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid .span-2,
+      .form-grid .span-3 {
+        grid-column: auto;
+      }
+
+      .table-wrap {
+        display: none;
+      }
+
+      .cards-mobile {
+        display: grid;
+      }
+
+      .panel-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card-values {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 390px) {
+      .nav-actions .btn .btn-label {
+        display: none;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-card .notice {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">🏠</div>
+          <div>
+            <h1>Comparativo de Aluguéis</h1>
+            <p>HTML, CSS e JS puro · GitHub Pages · sem npm</p>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-secondary" id="btnExportCsv"><span class="btn-label">Exportar CSV</span></button>
+          <button class="btn btn-ghost" id="btnExportJson"><span class="btn-label">Exportar JSON</span></button>
+          <button class="btn btn-primary" id="btnNew"><span class="btn-label">Adicionar imóvel</span></button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" data-route="#/inicio">
+      <section class="hero">
+        <section class="panel input-panel" aria-label="Painel de anúncios">
+
+          <!-- Add by link -->
+          <div class="ip-section">
+            <div class="ip-section-head">
+              <div>
+                <span class="ip-label">Adicionar por link</span>
+                <span class="ip-sub">Cole um ou mais links do Netimoveis, um por linha</span>
+              </div>
+            </div>
+            <div class="ip-input-row">
+              <textarea id="linksInput" spellcheck="false" placeholder="https://www.netimoveis.com/imovel/..."></textarea>
+              <div class="ip-btn-col">
+                <button class="btn btn-primary" id="btnAddLinks">⬆ Adicionar</button>
+                <button class="btn btn-secondary" id="btnTryRead">🔍 Buscar dados</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Registered properties -->
+          <div class="ip-section">
+            <div class="ip-section-head">
+              <span class="ip-label" id="linksTitle">Imóveis cadastrados</span>
+              <button class="btn btn-ghost btn-small" id="btnSeed">↺ Restaurar base</button>
+            </div>
+            <div id="linkList" class="link-list"></div>
+          </div>
+
+        </section>
+      </section>
+
+      <section class="stats" aria-label="Indicadores do comparativo">
+        <article class="stat-card">
+          <div class="stat-label">Imóveis listados</div>
+          <div class="stat-value" id="statCount">0</div>
+          <div class="stat-hint">Considerando os filtros atuais.</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-label">Menor custo total</div>
+          <div class="stat-value" id="statCheapest">—</div>
+          <div class="stat-hint" id="statCheapestHint">—</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-label">Média total</div>
+          <div class="stat-value" id="statAverage">—</div>
+          <div class="stat-hint">Apenas imóveis com valor total.</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-label">Melhor R$/m²</div>
+          <div class="stat-value" id="statM2">—</div>
+          <div class="stat-hint" id="statM2Hint">—</div>
+        </article>
+
+        <article class="stat-card top-card" id="topCard1">
+          <div class="stat-top-rank">🥇 Melhor custo-benefício</div>
+          <div class="stat-value" id="topVal1">—</div>
+          <div class="stat-hint" id="topHint1">Preencha total, área e quartos para calcular.</div>
+          <div class="stat-score" id="topScore1"></div>
+        </article>
+
+        <article class="stat-card top-card" id="topCard2">
+          <div class="stat-top-rank">🥈 2º custo-benefício</div>
+          <div class="stat-value" id="topVal2">—</div>
+          <div class="stat-hint" id="topHint2">—</div>
+          <div class="stat-score" id="topScore2"></div>
+        </article>
+
+        <article class="stat-card top-card" id="topCard3">
+          <div class="stat-top-rank">🥉 3º custo-benefício</div>
+          <div class="stat-value" id="topVal3">—</div>
+          <div class="stat-hint" id="topHint3">—</div>
+          <div class="stat-score" id="topScore3"></div>
+        </article>
+      </section>
+
+      <section class="panel toolbar" aria-label="Filtros">
+        <div class="field">
+          <label for="searchInput">Busca</label>
+          <input id="searchInput" type="search" placeholder="Buscar por bairro, cidade, descrição..." />
+        </div>
+
+        <div class="field">
+          <label for="cityFilter">Cidade</label>
+          <select id="cityFilter">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="roomsFilter">Quartos</label>
+          <select id="roomsFilter">
+            <option value="">Todos</option>
+            <option value="1">1 quarto</option>
+            <option value="2">2 quartos</option>
+            <option value="3">3 quartos</option>
+            <option value="4">4+ quartos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="maxTotalInput">Total máximo</label>
+          <input id="maxTotalInput" type="number" min="0" step="50" placeholder="Ex.: 1800" />
+        </div>
+
+        <div class="field">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter">
+            <option value="">Todos</option>
+            <option value="ok">Conferido</option>
+            <option value="pendente">A conferir</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="qualityFilter">Qualidade</label>
+          <select id="qualityFilter">
+            <option value="">Todas</option>
+            <option value="completo">Completo</option>
+            <option value="parcial">Parcial</option>
+            <option value="pendente">Pendente</option>
+          </select>
+        </div>
+
+        <button class="btn btn-ghost" id="btnClearFilters">Limpar</button>
+      </section>
+
+      <section class="main-grid">
+        <section class="panel table-panel">
+          <div class="panel-title">
+            <div>
+              <h3>Tabela comparativa</h3>
+              <p>Clique nos cabeçalhos para ordenar. Use “Editar” para corrigir dados manualmente.</p>
+            </div>
+            <span class="badge" id="resultBadge">0 resultados</span>
+          </div>
+
+          <div class="table-wrap">
+            <table aria-label="Tabela de comparação de imóveis">
+              <colgroup>
+                <col style="width:120px"><!-- Imóvel -->
+                <col style="width:108px"><!-- Valor -->
+                <col style="width:52px"> <!-- Área -->
+                <col style="width:62px"> <!-- R$/m² -->
+                <col style="width:70px"> <!-- Cômodos -->
+                <col style="width:150px"><!-- Localização -->
+                <col style="width:90px"> <!-- CB Score -->
+                <col style="width:72px"> <!-- Status -->
+                <col style="width:72px"> <!-- Qualidade -->
+                <col style="width:38px"> <!-- Ações -->
+              </colgroup>
+              <thead>
+                <tr>
+                  <th data-sort="title">Imóvel</th>
+                  <th data-sort="total">Valor</th>
+                  <th data-sort="area">Área</th>
+                  <th data-sort="priceM2">R$/m²</th>
+                  <th data-sort="rooms">Cômodos</th>
+                  <th data-sort="neighborhood">Localização</th>
+                  <th data-sort="score">CB Score</th>
+                  <th data-sort="status">Status</th>
+                  <th>Qualidade</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="cards-mobile" id="cardsMobile"></div>
+          <div class="empty" id="emptyState" hidden>Nenhum imóvel encontrado com os filtros atuais.</div>
+        </section>
+      </section>
+    </main>
+
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <h3 id="modalTitle">Editar imóvel</h3>
+            <p class="muted">Preencha ou corrija os dados do anúncio.</p>
+          </div>
+          <button class="btn btn-ghost btn-small" id="btnCloseModal">Fechar</button>
+        </div>
+
+        <form id="propertyForm">
+          <input type="hidden" id="formId" />
+
+          <div class="form-grid">
+            <div class="field span-2">
+              <label for="formTitle">Título</label>
+              <input id="formTitle" required />
+            </div>
+
+            <div class="field">
+              <label for="formStatus">Status</label>
+              <select id="formStatus">
+                <option value="pendente">A conferir</option>
+                <option value="ok">Conferido</option>
+              </select>
+            </div>
+
+            <div class="field span-3">
+              <label for="formUrl">Link</label>
+              <input id="formUrl" type="url" />
+            </div>
+
+            <div class="field">
+              <label for="formRent">Locação</label>
+              <input id="formRent" type="number" step="0.01" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formCondo">Condomínio</label>
+              <input id="formCondo" type="number" step="0.01" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formIptu">IPTU (mensal)</label>
+              <input id="formIptu" type="number" step="0.01" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formArea">Área (m²)</label>
+              <input id="formArea" type="number" step="0.01" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formRooms">Quartos</label>
+              <input id="formRooms" type="number" step="1" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formBathrooms">Banheiros</label>
+              <input id="formBathrooms" type="number" step="1" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formParking">Vagas</label>
+              <input id="formParking" type="number" step="1" min="0" />
+            </div>
+
+            <div class="field">
+              <label for="formCity">Cidade</label>
+              <input id="formCity" />
+            </div>
+
+            <div class="field">
+              <label for="formNeighborhood">Bairro</label>
+              <input id="formNeighborhood" />
+            </div>
+
+            <div class="field">
+              <label for="formType">Tipo</label>
+              <input id="formType" />
+            </div>
+
+            <div class="field span-3">
+              <label for="formAddress">Localização / Endereço</label>
+              <input id="formAddress" />
+            </div>
+
+            <div class="field span-3">
+              <label for="formFeatures">Características</label>
+              <textarea id="formFeatures" rows="3"></textarea>
+            </div>
+
+            <div class="field span-3">
+              <label for="formDescription">Descrição</label>
+              <textarea id="formDescription" rows="4"></textarea>
+            </div>
+          </div>
+
+          <div class="actions" style="margin-top: 16px;">
+            <button class="btn btn-primary" type="submit">Salvar imóvel</button>
+            <button class="btn btn-danger" type="button" id="btnDelete">Excluir</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    // ============================================================
+    // Comparativo de Aluguéis - MVP em arquivo único
+    // Sem framework, sem npm, pronto para GitHub Pages.
+    // ============================================================
+
+    const STORAGE_KEY = "comparativo-alugueis-v1";
+
+    const initialLinks = [
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-belo-horizonte-barreiro-milionarios/1174765/",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-belo-horizonte-barreiro-solar-do-barreiro-(barreiro)/1167740/",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-belo-horizonte-barreiro-milionarios/1172500/",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-3-quartos-minas-gerais-belo-horizonte-barreiro-lindeia/1081229/",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-belo-horizonte-noroeste-california/703188/",
+      "https://www.netimoveis.com/imovel/locacao-casa-minas-gerais-contagem-sapucaias-ii/1016760/?tipoUrl=casa&bairroUrl=sapucaias-ii",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-contagem-colonial/1105939/?tipoUrl=apartamento-2-quartos&bairroUrl=colonial",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-contagem-estancias-imperiais/914026/",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-contagem-colonial/1107266/?tipoUrl=apartamento-2-quartos&bairroUrl=colonial",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-2-quartos-minas-gerais-contagem-eldorado/1081739/?tipoUrl=apartamento-2-quartos&bairroUrl=eldorado",
+      "https://www.netimoveis.com/imovel/locacao-apartamento-1-quarto-minas-gerais-contagem-eldorado/1176586/"
+    ];
+
+    // Base inicial criada para o MVP. Campos não confirmados ficam nulos e aparecem como "A conferir".
+    const seedProperties = [
+      {
+        id: "1174765",
+        url: initialLinks[0],
+        title: "Apartamento 2 quartos no Milionários",
+        type: "Apartamento",
+        city: "Belo Horizonte",
+        neighborhood: "Milionários",
+        address: "Milionários, Barreiro - Belo Horizonte/MG",
+        rent: 1350,
+        condo: null,
+        iptu: 37.78,
+        area: 58.05,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banho; 1 sala; 1 vaga demarcada descoberta; pintura nova; piso cerâmico",
+        description: "Excelente apto de 2 quartos no Milionários. Fácil acesso ao comércio, escolas e linha de ônibus próxima. Garagem 1 vaga demarcada descoberta.",
+        status: "a conferir"
+      },
+      {
+        id: "1167740",
+        url: initialLinks[1],
+        title: "Apartamento 2 quartos no Solar do Barreiro",
+        type: "Apartamento",
+        city: "Belo Horizonte",
+        neighborhood: "Solar do Barreiro",
+        address: "Rua Dois Mil Cento e Trinta e Sete, 460, Solar do Barreiro (Barreiro) - Belo Horizonte/MG",
+        rent: 1200,
+        condo: 340,
+        iptu: 43,
+        area: 48,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banho; 1 sala (cozinha americana); 1 vaga (estacionamento para moto); prédio novo; fachada textura",
+        description: "Prédio novo. Apto 2 quartos, sala, cozinha americana, banheiro social. Vaga tipo estacionamento para moto. Condomínio R$ 340,00.",
+        status: "a conferir"
+      },
+      {
+        id: "1172500",
+        url: initialLinks[2],
+        title: "Apartamento 2 quartos no Milionários",
+        type: "Apartamento",
+        city: "Belo Horizonte",
+        neighborhood: "Milionários",
+        address: "Rua Caetano Pirri, Milionários, Barreiro - Belo Horizonte/MG",
+        rent: 1200,
+        condo: 400.24,
+        iptu: 41.73,
+        area: 47.4,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banheiro; 1 sala para 2 ambientes; 1 vaga coberta demarcada livre; gás canalizado; interfone; portão eletrônico; guarita; porteiro 24h; elevador social; estado novo",
+        description: "Apto novo ~47,4m² no Milionários. 2 quartos, sala para 2 ambientes, banho social, cozinha+área conjugada. 1 vaga coberta. Prédio 9 anos, 11 andares, 4 aptos por andar.",
+        status: "a conferir"
+      },
+      {
+        id: "1081229",
+        url: initialLinks[3],
+        title: "Apartamento 3 quartos no Lindéia",
+        type: "Apartamento",
+        city: "Belo Horizonte",
+        neighborhood: "Lindéia",
+        address: "Lindéia, Barreiro - Belo Horizonte/MG",
+        rent: 2200,
+        condo: 180,
+        iptu: 30.04,
+        area: 68.35,
+        rooms: 3,
+        bathrooms: 2,
+        parking: 1,
+        features: "3 quartos (1 suíte com sacada); 2 banhos; 1 sala; 1 vaga coberta demarcada; cozinha com bancada em granito; piso laminado; pintura nova; interfone",
+        description: "Excelente apto 3 quartos no Lindéia. Fácil acesso ao Barreiro, Durval de Barros, BR-381. 1 suíte com sacada. Vaga coberta. Condomínio R$ 180,00.",
+        status: "a conferir"
+      },
+      {
+        id: "703188",
+        url: initialLinks[4],
+        title: "Apartamento 2 quartos no Califórnia",
+        type: "Apartamento",
+        city: "Belo Horizonte",
+        neighborhood: "Califórnia",
+        address: "Califórnia, Noroeste - Belo Horizonte/MG",
+        rent: 1000,
+        condo: 252.79,
+        iptu: 86.18,
+        area: 50,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banho; 1 sala ampla; 1 vaga demarcada descoberta livre; piscina; playground; quadras esportivas; academia; salão de festas; espaço gourmet; gás canalizado; portaria 24h; guarita; elevador social; jardim",
+        description: "Res. Spazio Plaza Mayor. Excelente localização próximo à Av. Pres. Juscelino Kubitschek. ~50m². Condomínio completo com lazer. Gás canalizado individual.",
+        status: "a conferir"
+      },
+      {
+        id: "1016760",
+        url: initialLinks[5],
+        title: "Imóvel para locação em Sapucaias II",
+        type: "Apartamento",
+        city: "Contagem",
+        neighborhood: "Sapucaias II",
+        address: "Sapucaias II - Contagem/MG",
+        rent: 900,
+        condo: 520,
+        iptu: null,
+        area: 48,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banheiro; 1 sala; 1 vaga demarcada livre; água e gás individualizados; portão eletrônico; interfone; salão de festas; playground; área gourmet; espaço fitness; câmera facial; portaria comercial; acessibilidade",
+        description: "Apto 48m² em Sapucaias II. Água e gás individualizados. Condomínio completo com lazer. Portaria comercial + câmera de reconhecimento facial.",
+        status: "a conferir"
+      },
+      {
+        id: "1105939",
+        url: initialLinks[6],
+        title: "Apartamento 2 quartos em Chácara Contagem",
+        type: "Apartamento",
+        city: "Contagem",
+        neighborhood: "Chácara Contagem",
+        address: "Chácara Contagem - Contagem/MG",
+        rent: 1000,
+        condo: 400,
+        iptu: null,
+        area: 56.55,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banho; 1 sala; 1 vaga demarcada descoberta livre; piscina; 3 espaços gourmet; 3 salões de festas; quadra gramada; 2 playgrounds; espaço fitness; pet place; 2 bicicletários; gás canalizado; portaria permanente",
+        description: "Apto 56,55m² próximo Clube Praia dos Bombeiros, Supermercados BH. Luz individual. Condomínio fechado com lazer completo. Condomínio R$ 400,00.",
+        status: "a conferir"
+      },
+      {
+        id: "914026",
+        url: initialLinks[7],
+        title: "Apartamento 2 quartos no Estâncias Imperiais",
+        type: "Apartamento",
+        city: "Contagem",
+        neighborhood: "Estâncias Imperiais",
+        address: "Estâncias Imperiais - Contagem/MG",
+        rent: 1000,
+        condo: null,
+        iptu: null,
+        area: 55,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banheiro social (box blindex); 1 sala; 1 vaga demarcada livre descoberta; área de serviço coberta individual; medidor de luz individual; medidor de água dividida; sol da manhã",
+        description: "Excelente apto 55m² em Estâncias Imperiais. Arejado e bem localizado. 2 quartos em cerâmica, cozinha com pia e armários. Condomínio não informado no anúncio.",
+        status: "a conferir"
+      },
+      {
+        id: "1107266",
+        url: initialLinks[8],
+        title: "Apartamento 2 quartos em Chácara Contagem",
+        type: "Apartamento",
+        city: "Contagem",
+        neighborhood: "Chácara Contagem",
+        address: "Chácara Contagem - Contagem/MG",
+        rent: 1100,
+        condo: 300,
+        iptu: null,
+        area: 53.66,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banho; 1 sala; 1 vaga demarcada livre; piscina; 3 espaços gourmet; 3 salões de festas; quadra gramada; 2 playgrounds; espaço fitness; academia; pet place; 2 bicicletários; gás canalizado; portaria permanente",
+        description: "Apto 53,66m² em Chácara Contagem. Luz individual (ligação nova). Condomínio fechado completo com lazer e academia. Condomínio R$ 300,00.",
+        status: "a conferir"
+      },
+      {
+        id: "1081739",
+        url: initialLinks[9],
+        title: "Apartamento 2 quartos em Maria da Conceição",
+        type: "Apartamento",
+        city: "Contagem",
+        neighborhood: "Maria da Conceição",
+        address: "Maria da Conceição - Contagem/MG",
+        rent: 1300,
+        condo: 360,
+        iptu: 57.95,
+        area: 56.55,
+        rooms: 2,
+        bathrooms: 1,
+        parking: 1,
+        features: "2 quartos; 1 banho; 1 sala ampla; 1 vaga descoberta demarcada; piscina; espaço gourmet; salão de festas; quadra esportiva; playground; espaço fitness; academia; pet place; bicicletário; elevador; guarita; monitoramento; interfone",
+        description: "Apto 56,55m² próximo ao 18º BPM, Hospital Regional de Contagem e Via Expressa. Luz individual (Cemig nova). Condomínio fechado completo. Condomínio R$ 360,00.",
+        status: "a conferir"
+      },
+      {
+        id: "1176586",
+        url: initialLinks[10],
+        title: "Apartamento 1 quarto no Eldorado (Loft)",
+        type: "Apartamento",
+        city: "Contagem",
+        neighborhood: "Eldorado",
+        address: "Rua Paineiras, Eldorado - Contagem/MG",
+        rent: 1420,
+        condo: 180,
+        iptu: null,
+        area: 30.45,
+        rooms: 1,
+        bathrooms: 1,
+        parking: 1,
+        features: "1 quarto (suíte); 1 banheiro (porcelanato, box vid. temperado); 1 sala integrada (loft); 1 vaga (estacionamento); ar condicionado; armário planejado; cozinha americana com granito e cooktop; prédio individual só 8 unidades; próximo metrô Eldorado e Big Shopping",
+        description: "Imóvel novo! Loft 30,45m². Sala e quarto integrados, ar condicionado, armário planejado, cozinha americana equipada. Condomínio R$ 180. Próximo estacão metrô Eldorado e Big Shopping.",
+        status: "a conferir"
+      }
+    ];
+
+    let properties = [];
+    let filteredProperties = [];
+    let sortState = { key: "score", direction: "desc" };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    const elements = {
+      linksInput: $("#linksInput"),
+      linkList: $("#linkList"),
+      btnTryRead: $("#btnTryRead"),
+      tableBody: $("#tableBody"),
+      cardsMobile: $("#cardsMobile"),
+      emptyState: $("#emptyState"),
+      resultBadge: $("#resultBadge"),
+      searchInput: $("#searchInput"),
+      cityFilter: $("#cityFilter"),
+      roomsFilter: $("#roomsFilter"),
+      maxTotalInput: $("#maxTotalInput"),
+      statusFilter: $("#statusFilter"),
+      qualityFilter: $("#qualityFilter"),
+      modal: $("#modal"),
+      propertyForm: $("#propertyForm"),
+      toast: $("#toast")
+    };
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    function init() {
+      setupHashRoute();
+      elements.linksInput.value = initialLinks.join("\n");
+      loadData();
+      bindEvents();
+      renderLinkList();
+      renderAll();
+    }
+
+    function setupHashRoute() {
+      if (!location.hash) {
+        location.hash = "#/inicio";
+      }
+    }
+
+    function bindEvents() {
+      $("#btnAddLinks").addEventListener("click", addLinksFromTextarea);
+      $("#btnTryRead").addEventListener("click", tryReadLinks);
+      $("#btnSeed").addEventListener("click", restoreSeed);
+      $("#btnNew").addEventListener("click", () => openModal(createEmptyProperty()));
+      $("#btnCloseModal").addEventListener("click", closeModal);
+      $("#btnDelete").addEventListener("click", deleteCurrentProperty);
+      $("#btnExportCsv").addEventListener("click", exportCsv);
+      $("#btnExportJson").addEventListener("click", exportJson);
+      $("#btnClearFilters").addEventListener("click", clearFilters);
+
+      elements.searchInput.addEventListener("input", renderAll);
+      elements.cityFilter.addEventListener("change", renderAll);
+      elements.roomsFilter.addEventListener("change", renderAll);
+      elements.maxTotalInput.addEventListener("input", renderAll);
+      elements.statusFilter.addEventListener("change", renderAll);
+      elements.qualityFilter.addEventListener("change", renderAll);
+
+      elements.propertyForm.addEventListener("submit", saveForm);
+
+      $$(".table-wrap th[data-sort]").forEach((th) => {
+        th.addEventListener("click", () => {
+          const key = th.dataset.sort;
+          if (sortState.key === key) {
+            sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
+          } else {
+            sortState = { key, direction: "asc" };
+          }
+          renderAll();
+        });
+      });
+
+      elements.modal.addEventListener("click", (event) => {
+        if (event.target === elements.modal) closeModal();
+      });
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          properties = JSON.parse(saved);
+          // Migrate: apply updated seed data to fill any null/empty fields
+          // without overwriting fields the user has manually edited.
+          let changed = false;
+          seedProperties.forEach((seed) => {
+            const idx = properties.findIndex((p) => p.id === seed.id);
+            if (idx === -1) {
+              // New seed entry not yet in storage — add it
+              properties.push(clone(seed));
+              changed = true;
+            } else {
+              const merged = smartMerge(properties[idx], seed);
+              // Check if anything actually changed
+              if (JSON.stringify(merged) !== JSON.stringify(properties[idx])) {
+                properties[idx] = merged;
+                changed = true;
+              }
+            }
+          });
+          if (changed) saveData();
+          return;
+        } catch (error) {
+          console.warn("Não foi possível carregar os dados salvos.", error);
+        }
+      }
+
+      properties = clone(seedProperties);
+      saveData();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(properties));
+    }
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function renderAll() {
+      populateCityFilter();
+      filteredProperties = applyFilters(properties);
+      filteredProperties = sortProperties(filteredProperties);
+
+      renderStats(filteredProperties);
+      renderTable(filteredProperties);
+      renderMobileCards(filteredProperties);
+      updateSortIndicators();
+    }
+
+    function populateCityFilter() {
+      const selected = elements.cityFilter.value;
+      const cities = unique(properties.map((item) => item.city).filter(Boolean)).sort();
+
+      elements.cityFilter.innerHTML = '<option value="">Todas</option>' + cities
+        .map((city) => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`)
+        .join("");
+
+      elements.cityFilter.value = cities.includes(selected) ? selected : "";
+    }
+
+    function applyFilters(list) {
+      const search = normalizeText(elements.searchInput.value);
+      const city = elements.cityFilter.value;
+      const rooms = elements.roomsFilter.value;
+      const maxTotal = toNumber(elements.maxTotalInput.value);
+      const status = elements.statusFilter.value;
+      const quality = elements.qualityFilter.value;
+
+      return list.filter((item) => {
+        const haystack = normalizeText([
+          item.title,
+          item.type,
+          item.city,
+          item.neighborhood,
+          item.address,
+          item.features,
+          item.description
+        ].join(" "));
+
+        const total = getTotal(item);
+
+        const matchesSearch  = !search  || haystack.includes(search);
+        const matchesCity    = !city    || item.city === city;
+        const matchesStatus  = !status  || item.status === status;
+        const matchesQuality = !quality || getDataQuality(item) === quality;
+        const matchesRooms   = !rooms   || (
+          rooms === "4"
+            ? Number(item.rooms || 0) >= 4
+            : Number(item.rooms || 0) === Number(rooms)
+        );
+        const matchesMaxTotal = !maxTotal || (total !== null && total <= maxTotal);
+
+        return matchesSearch && matchesCity && matchesRooms && matchesMaxTotal && matchesStatus && matchesQuality;
+      });
+    }
+
+    function sortProperties(list) {
+      const { key, direction } = sortState;
+      const factor = direction === "asc" ? 1 : -1;
+
+      return [...list].sort((a, b) => {
+        const valueA = getSortValue(a, key);
+        const valueB = getSortValue(b, key);
+
+        if (valueA === null && valueB === null) return 0;
+        if (valueA === null) return 1;
+        if (valueB === null) return -1;
+
+        if (typeof valueA === "string" || typeof valueB === "string") {
+          return String(valueA).localeCompare(String(valueB), "pt-BR") * factor;
+        }
+
+        return (valueA - valueB) * factor;
+      });
+    }
+
+    // Cost-benefit score:
+    // Quantifies what you get (area, rooms, bathrooms, parking)
+    // relative to what you pay (total monthly cost).
+    // Score = feature_points / total * 100
+    // Higher is better.
+    function getValueScore(item) {
+      const total = getTotal(item);
+      if (!total || total <= 0) return null;
+
+      const area     = toNullableNumber(item.area)     || 0;
+      const rooms    = toNullableNumber(item.rooms)    || 0;
+      const baths    = toNullableNumber(item.bathrooms)|| 0;
+      const parking  = toNullableNumber(item.parking)  || 0;
+
+      // Require at least total + area or total + rooms to have a meaningful score
+      if (!area && !rooms) return null;
+
+      // Weight each feature by its rough housing market importance
+      // area: R$10 of "value" per m², rooms: R$80, bathrooms: R$45, parking: R$30
+      const featurePoints = (area * 10) + (rooms * 80) + (baths * 45) + (parking * 30);
+
+      // Return score as feature points per R$100 of monthly cost
+      return (featurePoints / total) * 100;
+    }
+
+    function updateSortIndicators() {
+      document.querySelectorAll(".table-wrap th[data-sort]").forEach((th) => {
+        th.classList.remove("sort-asc", "sort-desc");
+        if (th.dataset.sort === sortState.key) {
+          th.classList.add(sortState.direction === "asc" ? "sort-asc" : "sort-desc");
+        }
+      });
+    }
+
+    function getSortValue(item, key) {
+      if (key === "total") return getTotal(item);
+      if (key === "priceM2") return getPriceM2(item);
+      if (key === "score") return getValueScore(item);
+      if (key === "title") return item.title || "";
+      if (key === "neighborhood") return `${item.city || ""} ${item.neighborhood || ""}`;
+      if (key === "status") return item.status || "";
+      return item[key] ?? null;
+    }
+
+    function renderStats(list) {
+      const withTotal = list
+        .map((item) => ({ item, total: getTotal(item) }))
+        .filter((entry) => entry.total !== null);
+
+      const cheapest = [...withTotal].sort((a, b) => a.total - b.total)[0];
+      const average = withTotal.length
+        ? withTotal.reduce((sum, entry) => sum + entry.total, 0) / withTotal.length
+        : null;
+
+      const bestM2 = list
+        .map((item) => ({ item, priceM2: getPriceM2(item) }))
+        .filter((entry) => entry.priceM2 !== null)
+        .sort((a, b) => a.priceM2 - b.priceM2)[0];
+
+      $("#statCount").textContent = String(list.length);
+      $("#statCheapest").textContent = cheapest ? formatBRL(cheapest.total) : "—";
+      $("#statCheapestHint").textContent = cheapest
+        ? `${cheapest.item.neighborhood || "Sem bairro"} · ${cheapest.item.city || "Sem cidade"}`
+        : "Sem dados suficientes.";
+
+      $("#statAverage").textContent = average !== null ? formatBRL(average) : "—";
+
+      $("#statM2").textContent = bestM2 ? `${formatBRL(bestM2.priceM2)}/m²` : "—";
+      $("#statM2Hint").textContent = bestM2
+        ? `${bestM2.item.neighborhood || "Sem bairro"} · ${bestM2.item.city || "Sem cidade"}`
+        : "Depende de total e área preenchidos.";
+
+      // Top 3 cost-benefit KPI cards
+      const scored = list
+        .map((item) => ({ item, score: getValueScore(item), total: getTotal(item) }))
+        .filter((e) => e.score !== null)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+
+      [1, 2, 3].forEach((rank) => {
+        const entry = scored[rank - 1];
+        const valEl   = $(`#topVal${rank}`);
+        const hintEl  = $(`#topHint${rank}`);
+        const scoreEl = $(`#topScore${rank}`);
+        if (!valEl) return;
+
+        if (entry) {
+          valEl.textContent  = entry.item.title || "Imóvel sem título";
+          hintEl.textContent = `${formatBRL(entry.total)} · ${entry.item.neighborhood || "—"} · ${entry.item.city || "—"}`;
+          scoreEl.textContent = `Score: ${entry.score.toFixed(1)} pts/R$100`;
+        } else {
+          valEl.textContent  = "—";
+          hintEl.textContent = rank === 1 ? "Preencha total, área e quartos." : "—";
+          scoreEl.textContent = "";
+        }
+      });
+    }
+
+    function renderTable(list) {
+      elements.resultBadge.textContent = `${list.length} resultado${list.length === 1 ? "" : "s"}`;
+      elements.emptyState.hidden = list.length > 0;
+
+      // Pre-compute scores for bar normalisation
+      const scores = list.map((item) => getValueScore(item)).filter((s) => s !== null);
+      const maxScore = scores.length ? Math.max(...scores) : 1;
+
+      elements.tableBody.innerHTML = list.map((item) => {
+        const total  = getTotal(item);
+        const priceM2 = getPriceM2(item);
+        const score  = getValueScore(item);
+        const barPct = score !== null ? Math.round((score / maxScore) * 100) : 0;
+
+        const scoreCell = score !== null
+          ? `<div class="score-bar-wrap">
+               <div class="score-bar"><div class="score-bar-fill" style="width:${barPct}%"></div></div>
+               <span class="score-num">${score.toFixed(1)}</span>
+             </div>`
+          : `<span class="no-score">—</span>`;
+
+        const tipText = total !== null
+          ? `Locação:    ${formatMaybeBRL(item.rent)}\nCondomínio: ${formatMaybeBRL(item.condo)}\nIPTU:       ${formatMaybeBRL(item.iptu)}`
+          : "";
+        // (tipText kept for reference; actual tooltip uses showValueTip JS function)
+
+        const r = item.rooms    ?? "—";
+        const b = item.bathrooms ?? "—";
+        const v = item.parking   ?? "—";
+        const comodosStr = `${r}Q · ${b}B · ${v}V`;
+
+        const areaStr   = item.area   !== null && item.area   !== undefined ? Math.round(item.area)   + " m²" : "—";
+        const priceM2Str = priceM2   !== null                               ? Math.round(priceM2).toLocaleString("pt-BR") + "/m²" : "—";
+
+        const dInfo = distanceInfo(item);
+        const distTags = dInfo ? [
+          dInfo.distCity !== null ? `~${dInfo.distCity.toFixed(1)} km do centro` : null,
+          (item.city !== "Belo Horizonte" && dInfo.distBH !== null) ? `~${dInfo.distBH.toFixed(1)} km de BH` : null
+        ].filter(Boolean).join(" · ") : "";
+
+        return `
+          <tr>
+            <td>
+              <a class="property-link" href="${escapeAttr(item.url || "#")}" target="_blank" rel="noopener">Ver anúncio ↗</a>
+            </td>
+            <td class="money total">
+              <span class="tip-wrap" onmouseenter="showValueTip(event,${JSON.stringify(item.rent)},${JSON.stringify(item.condo)},${JSON.stringify(item.iptu)},${JSON.stringify(total)})" onmouseleave="hideValueTip()">${formatMaybeBRL(total)}</span>
+            </td>
+            <td>${areaStr}</td>
+            <td class="money">${priceM2Str}</td>
+            <td class="comodos">${comodosStr}</td>
+            <td>
+              <strong>${escapeHtml(item.neighborhood || "A conferir")}</strong><br>
+              <span class="muted" style="font-size:11px">${escapeHtml(item.city || "A conferir")}</span>
+              ${distTags ? `<br><span class="dist-tag">${escapeHtml(distTags)}</span>` : ""}
+            </td>
+            <td class="score-cell">${scoreCell}</td>
+            <td>${statusBadge(item.status)}</td>
+            <td>${qualidadeBadge(item)}</td>
+            <td style="text-align:center">
+              <button class="btn-icon" onclick="editProperty('${escapeAttr(item.id)}')" title="Editar imóvel">✏</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function toggleCardDetail(id) {
+      const detail = document.getElementById("cdetail-" + id);
+      const btn    = document.getElementById("cdtbtn-" + id);
+      if (!detail) return;
+      const isOpen = !detail.hidden;
+      detail.hidden = isOpen;
+      if (btn) { btn.textContent = isOpen ? "Ver detalhes" : "Ocultar"; btn.setAttribute("aria-expanded", String(!isOpen)); }
+    }
+
+    function renderMobileCards(list) {
+      elements.cardsMobile.innerHTML = list.map((item) => {
+        const total   = getTotal(item);
+        const priceM2 = getPriceM2(item);
+        const loc     = [item.neighborhood, item.city].filter(Boolean).join(' · ');
+        const dInfo   = distanceInfo(item);
+        const distTag = dInfo ? [
+          dInfo.distCity !== null ? `~${dInfo.distCity.toFixed(1)} km do centro` : null,
+          (item.city !== 'Belo Horizonte' && dInfo.distBH !== null) ? `~${dInfo.distBH.toFixed(1)} km de BH` : null
+        ].filter(Boolean).join(' · ') : '';
+        const r = item.rooms     ?? '—';
+        const b = item.bathrooms ?? '—';
+        const v = item.parking   ?? '—';
+
+        return `
+          <article class="property-card">
+            <div class="property-card-head">
+              <h4>${escapeHtml(item.title || 'Imóvel sem título')}</h4>
+              <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
+                ${statusBadge(item.status)}
+                ${qualidadeBadge(item)}
+              </div>
+            </div>
+
+            <div class="card-location">
+              📍 ${escapeHtml(loc || 'Localização a conferir')}
+              ${distTag ? `<br><span class="dist-tag">${escapeHtml(distTag)}</span>` : ''}
+            </div>
+
+            <div class="card-total">
+              <div class="card-total-label">Total mensal</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <div class="card-total-value">${formatMaybeBRL(total)}</div>
+                <button class="btn-detail-toggle" id="cdtbtn-${escapeAttr(item.id)}" onclick="toggleCardDetail('${escapeAttr(item.id)}')" aria-expanded="false">Ver detalhes</button>
+              </div>
+            </div>
+
+            <div class="card-detail" id="cdetail-${escapeAttr(item.id)}" hidden>
+              <div class="mini-value"><span>Locação</span><strong>${formatMaybeBRL(item.rent)}</strong></div>
+              <div class="mini-value"><span>Condomínio</span><strong>${formatMaybeBRL(item.condo)}</strong></div>
+              <div class="mini-value"><span>IPTU</span><strong>${formatMaybeBRL(item.iptu)}</strong></div>
+            </div>
+
+            <div class="card-values">
+              <div class="mini-value"><span>Área</span><strong>${item.area !== null && item.area !== undefined ? Math.round(item.area) + ' m²' : '—'}</strong></div>
+              <div class="mini-value"><span>R$/m²</span><strong>${priceM2 !== null ? Math.round(priceM2).toLocaleString('pt-BR') + '/m²' : '—'}</strong></div>
+              <div class="mini-value"><span>Cômodos</span><strong>${r}Q · ${b}B · ${v}V</strong></div>
+            </div>
+
+            <div class="card-actions">
+              <a class="btn btn-ghost btn-small" href="${escapeAttr(item.url || '#')}" target="_blank" rel="noopener">Ver anúncio ↗</a>
+              <button class="btn btn-secondary btn-small" onclick="editProperty('${escapeAttr(item.id)}')">✏ Editar</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // renderRanking: replaced by KPI cards in renderStats
+
+    function addLinksFromTextarea() {
+      const links = parseLinks(elements.linksInput.value);
+      if (!links.length) {
+        showToast("Cole ao menos um link válido.");
+        return;
+      }
+
+      let added = 0;
+
+      links.forEach((url) => {
+        const id = getIdFromUrl(url);
+        const alreadyExists = properties.some((item) => item.id === id || item.url === url);
+
+        if (alreadyExists) return;
+
+        const seed = seedProperties.find((item) => item.id === id);
+        const newItem = seed ? clone(seed) : buildFallbackProperty(url);
+
+        properties.push(newItem);
+        added++;
+      });
+
+      if (added) elements.linksInput.value = "";
+      saveData();
+      renderAll();
+      renderLinkList();
+      showToast(added ? `${added} link(s) adicionado(s).` : "Todos os links já estavam na lista.");
+    }
+
+    // ─── Link list rendering ────────────────────────────────────────────────
+
+    function renderLinkList() {
+      const list = elements.linkList;
+      if (!list) return;
+
+      const count = properties.length;
+      const title = document.getElementById("linksTitle");
+      if (title) title.textContent = `Imóveis cadastrados${count ? ` (${count})` : ""}`;
+
+      if (!count) {
+        list.innerHTML = '<div class="link-list-empty">Nenhum imóvel cadastrado ainda.<br>Cole links acima ou clique em Restaurar base.</div>';
+        return;
+      }
+
+      list.innerHTML = properties.map((prop) => {
+        const id   = prop.id;
+        const url  = prop.url || '#';
+        const name = [prop.neighborhood, prop.city].filter(Boolean).join(" · ") || prop.title || id;
+        const q    = getDataQuality(prop);
+        const qMap  = { completo: 'ls-ok', parcial: 'ls-skip', pendente: 'ls-pending' };
+        const qLabel = { completo: '✓ Completo', parcial: '◑ Parcial', pendente: '○ Pendente' };
+        return `<div class="link-item" data-url="${escapeAttr(url)}">
+          <div class="link-item-body">
+            <span class="link-code">#${escapeHtml(id)}</span>
+            <span class="link-name" title="${escapeAttr(name)}">${escapeHtml(name)}</span>
+            <a href="${escapeAttr(url)}" target="_blank" rel="noopener" class="link-ext" title="Abrir anúncio">↗</a>
+          </div>
+          <span class="link-status ${qMap[q] || 'ls-pending'}">${qLabel[q] || '○ Pendente'}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function setLinkStatus(url, cls, label) {
+      if (!elements.linkList) return;
+      const item = elements.linkList.querySelector(`[data-url="${url.replace(/"/g, '&quot;')}"]`);
+      if (!item) return;
+      const badge = item.querySelector(".link-status");
+      if (!badge) return;
+      badge.className = `link-status ${cls}`;
+      badge.textContent = label;
+    }
+
+    function urlToLabel(url) {
+      const m = url.match(/imovel\/(?:locacao-)?([^/]+)\/\d+/);
+      if (!m) return url;
+      return m[1]
+        .replace(/-/g, " ")
+        .replace(/minas gerais|belo horizonte|contagem/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    // ─── Real async fetch via CORS proxy ────────────────────────────────────
+
+    async function tryReadLinks() {
+      const links = properties.map((p) => p.url).filter(Boolean);
+      if (!links.length) {
+        showToast("Adicione imóveis primeiro.");
+        return;
+      }
+
+      elements.btnTryRead.disabled = true;
+      elements.btnTryRead.textContent = "⏳ Buscando...";
+      renderLinkList();
+
+      let enriched = 0;
+
+    const CORS_PROXIES = [
+        // allorigins /get returns JSON {contents:"..."} — most reliable
+        {
+          url:   (u) => "https://api.allorigins.win/get?url=" + encodeURIComponent(u),
+          parse: async (res) => { const j = await res.json(); return j && j.contents ? j.contents : null; }
+        },
+        // codetabs — returns body directly
+        {
+          url:   (u) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u),
+          parse: async (res) => res.text()
+        },
+        // corsproxy.io — returns body directly
+        {
+          url:   (u) => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+          parse: async (res) => res.text()
+        },
+      ];
+
+      for (const url of links) {
+        setLinkStatus(url, "ls-fetching", "⏳ Buscando...");
+        let html = null;
+        for (const proxy of CORS_PROXIES) {
+          try {
+            const res = await fetch(proxy.url(url), { signal: AbortSignal.timeout(14000) });
+            if (!res.ok) continue;
+            const body = await proxy.parse(res);
+            if (body && body.length > 200) { html = body; break; }
+          } catch { /* try next proxy */ }
+        }
+        try {
+          if (!html) throw new Error("Todos os proxies falharam");
+
+          const parsed = parseNetimoveisHtml(html, url);
+          const id     = getIdFromUrl(url);
+          const existing = properties.find((p) => p.id === id || p.url === url);
+
+          if (existing) {
+            const incoming = { ...parsed };
+            const merged   = smartMerge(existing, incoming);
+            const changed  = JSON.stringify(merged) !== JSON.stringify(existing);
+            if (changed) {
+              properties[properties.indexOf(existing)] = merged;
+              enriched++;
+              setLinkStatus(url, "ls-ok", "✓ Atualizado");
+            } else {
+              setLinkStatus(url, "ls-skip", "◑ Sem novidade");
+            }
+          } else {
+            const fallback = buildFallbackProperty(url);
+            const merged   = smartMerge(fallback, parsed);
+            properties.push(merged);
+            enriched++;
+            setLinkStatus(url, "ls-ok", "✓ Adicionado");
+          }
+        } catch (err) {
+          console.warn("[fetch]", url, err.message);
+          setLinkStatus(url, "ls-error", "✗ " + (err.message || "Erro"));
+        }
+      }
+
+      saveData();
+      renderAll();
+      renderLinkList();
+      elements.btnTryRead.disabled = false;
+      elements.btnTryRead.textContent = "🔍 Buscar dados online";
+      showToast(enriched ? `${enriched} imóvel(is) atualizado(s).` : "Nenhum campo novo encontrado.");
+    }
+
+    // Parse HTML response from Netimoveis via DOMParser + targeted regex
+    function parseNetimoveisHtml(html, url) {
+      const parser = new DOMParser();
+      const doc  = parser.parseFromString(html, "text/html");
+      const text = doc.body ? doc.body.textContent : html;
+
+      const money = (pattern) => {
+        const m = text.match(new RegExp(pattern + "[^\\d\\n]*([\\d.]+,\\d{2})", "i"));
+        return m ? parseBRL(m[1]) : null;
+      };
+
+      const rent      = money("Valor de loca[\u00e7c][\u00e3a]o R\\$");
+      const condo     = money("Condom[\u00edn]nio R\\$");
+      const iptuM     = text.match(/Iptu\s+R\$\s*([\d.]+,\d{2})/i);
+      const iptu      = iptuM ? parseBRL(iptuM[1]) : null;
+
+      const areaM  = text.match(/[\u00e1a]rea aproximada\s*([\d,.]+)\s*m/i);
+      const area   = areaM ? parseFloat(areaM[1].replace(/\./g, "").replace(",", ".")) : null;
+
+      const roomsM = text.match(/(\d+)\s*quarto/i);
+      const rooms  = roomsM ? parseInt(roomsM[1]) : null;
+
+      const bathM  = text.match(/(\d+)\s*banh/i);
+      const bathrooms = bathM ? parseInt(bathM[1]) : null;
+
+      const parkM  = text.match(/(\d+)\s*vaga/i);
+      const parking = parkM ? parseInt(parkM[1]) : null;
+
+      // Neighborhood – City pattern: "Bairro \u2013 Cidade C\u00f3digo:"
+      const nhM = text.match(/([A-Z\u00c0-\u00da][\w\s\u00c0-\u00ff()]+?)\s*[\u2013-]\s*([\w\s]+?)\s*C\u00f3digo:/m);
+      const neighborhood = nhM ? nhM[1].trim() : null;
+      const city         = nhM ? nhM[2].trim() : null;
+
+      // Bullet features from characteristics
+      const bullets = [...text.matchAll(/\u2022\s*([^\n\u2022]{3,100})/g)]
+        .map((m) => m[1].trim())
+        .filter((s) => s.length > 2 && !/entre em contato|enviar|consultor/i.test(s));
+      const features = bullets.length ? bullets.slice(0, 16).join("; ") : null;
+
+      // Description from "Mais sobre este im\u00f3vel" block (first 300 chars)
+      const descM = text.match(/Mais sobre este im[\u00f3o]vel\s*([\s\S]{20,400?})(?:\u2022|Caracter|ENTRE)/i);
+      const description = descM
+        ? descM[1].replace(/\s+/g, " ").trim().slice(0, 280)
+        : null;
+
+      return { rent, condo, iptu, area, rooms, bathrooms, parking, neighborhood, city, features, description };
+    }
+
+    // Merge: only overwrites fields that are empty / null / "A conferir" in the existing record.
+    function smartMerge(existing, incoming) {
+      const result = { ...existing };
+      const PROTECTED = ["id", "url"];
+      Object.keys(incoming).forEach((key) => {
+        if (PROTECTED.includes(key)) return;
+        const v = existing[key];
+        const isEmpty =
+          v === null || v === undefined || v === "" ||
+          (typeof v === "string" && v.trim().toLowerCase() === "a conferir");
+        if (isEmpty) result[key] = incoming[key];
+      });
+      return result;
+    }
+
+    // Data quality based on how many key fields are filled.
+    function getDataQuality(item) {
+      const core  = [item.rent, item.area, item.rooms];
+      const extra = [item.condo, item.bathrooms, item.parking];
+      const allFields = [...core, ...extra];
+      const filled = (arr) => arr.filter((v) => v !== null && v !== undefined && v !== "").length;
+      if (filled(allFields) === allFields.length) return "completo";
+      if (filled(core) >= 2) return "parcial";
+      return "pendente";
+    }
+
+    function qualidadeBadge(item) {
+      const q = getDataQuality(item);
+      const map = {
+        completo: ["completo", "✓ Completo", "Todos os campos principais preenchidos"],
+        parcial:  ["parcial",  "◑ Parcial",  "Alguns campos ainda estão em branco"],
+        pendente: ["pendente", "○ Pendente", "Maioria dos dados ainda não preenchida"],
+      };
+      const [cls, label, tip] = map[q] || map.pendente;
+      return `<span class="badge ${cls}" title="${tip}">${label}</span>`;
+    }
+
+    // ─── Distance helpers ────────────────────────────────────────────────────
+    const BAIRRO_COORDS = {
+      "Milionários":         [-20.0100, -44.0350],
+      "Solar do Barreiro":   [-20.0050, -44.0400],
+      "Lindéia":             [-20.0080, -44.0250],
+      "Califórnia":          [-19.9300, -44.0000],
+      "Sapucaias II":        [-19.9500, -44.0800],
+      "Chácara Contagem":    [-19.9280, -44.0650],
+      "Colonial":            [-19.9290, -44.0600],
+      "Estâncias Imperiais": [-19.9380, -44.0700],
+      "Maria da Conceição":  [-19.9450, -44.0720],
+      "Eldorado":            [-19.9360, -44.0680],
+    };
+    const CITY_CENTERS = {
+      "Belo Horizonte": [-19.9167, -43.9345],
+      "Contagem":       [-19.9317, -44.0536],
+    };
+    const BH_CENTER = [-19.9167, -43.9345];
+
+    function haversineKm([lat1, lng1], [lat2, lng2]) {
+      const R  = 6371;
+      const dL = (lat2 - lat1) * Math.PI / 180;
+      const dG = (lng2 - lng1) * Math.PI / 180;
+      const a  = Math.sin(dL/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dG/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function distanceInfo(item) {
+      const coords = BAIRRO_COORDS[item.neighborhood];
+      if (!coords) return null;
+      const cc       = CITY_CENTERS[item.city];
+      const distCity = cc ? haversineKm(coords, cc) : null;
+      const distBH   = haversineKm(coords, BH_CENTER);
+      return { distCity, distBH };
+    }
+
+    function findSeedOrFallback(url) {
+      const id = getIdFromUrl(url);
+      const seed = seedProperties.find((item) => item.id === id);
+      return seed ? clone(seed) : buildFallbackProperty(url);
+    }
+
+    function buildFallbackProperty(url) {
+      const id = getIdFromUrl(url);
+      const parsed = parseNetimoveisUrl(url);
+
+      return {
+        id,
+        url,
+        title: parsed.title,
+        type: parsed.type,
+        city: parsed.city,
+        neighborhood: parsed.neighborhood,
+        address: parsed.address,
+        rent: null,
+        condo: null,
+        area: null,
+        rooms: parsed.rooms,
+        bathrooms: null,
+        parking: null,
+        features: parsed.rooms ? `${parsed.rooms} quarto(s); demais características a conferir` : "Características a conferir",
+        description: "Imóvel importado pelo link. Complete os campos após conferir o anúncio.",
+        status: "pendente"
+      };
+    }
+
+    function parseNetimoveisUrl(url) {
+      const clean = decodeURIComponent(url).split("?")[0];
+      const parts = clean.split("/").filter(Boolean);
+      const slug = parts[parts.length - 2] || "";
+
+      const type = slug.includes("casa") ? "Casa" : slug.includes("apartamento") ? "Apartamento" : "Imóvel";
+      const roomsMatch = slug.match(/(\d+)-quartos?/);
+      const rooms = roomsMatch ? Number(roomsMatch[1]) : null;
+
+      const city = slug.includes("belo-horizonte") ? "Belo Horizonte" : slug.includes("contagem") ? "Contagem" : "";
+
+      let neighborhood = "";
+      const cityKey = city === "Belo Horizonte" ? "belo-horizonte" : city === "Contagem" ? "contagem" : "";
+      if (cityKey) {
+        const afterCity = slug.split(cityKey)[1] || "";
+        const tokens = afterCity.split("-").filter(Boolean);
+        const ignored = ["barreiro", "noroeste"];
+        const useful = tokens.filter((token) => !ignored.includes(token));
+        neighborhood = titleCase(useful.join(" "));
+      }
+
+      return {
+        title: `${type}${rooms ? ` ${rooms} quarto${rooms > 1 ? "s" : ""}` : ""}${neighborhood ? ` no ${neighborhood}` : ""}`,
+        type,
+        city,
+        neighborhood,
+        address: [neighborhood, city ? `${city}/MG` : ""].filter(Boolean).join(" - "),
+        rooms
+      };
+    }
+
+    function upsertProperty(item) {
+      const index = properties.findIndex((property) => property.id === item.id || property.url === item.url);
+      if (index >= 0) {
+        properties[index] = { ...properties[index], ...item };
+      } else {
+        properties.push(item);
+      }
+    }
+
+    function restoreSeed() {
+      const confirmed = confirm("Restaurar a base inicial? Isso substitui os dados salvos localmente.");
+      if (!confirmed) return;
+
+      properties = clone(seedProperties);
+      elements.linksInput.value = initialLinks.join("\n");
+      saveData();
+      renderAll();
+      showToast("Base inicial restaurada.");
+    }
+
+    function editProperty(id) {
+      const item = properties.find((property) => property.id === id);
+      if (item) openModal(item);
+    }
+
+    window.editProperty = editProperty;
+
+    function openModal(item) {
+      $("#formId").value = item.id || createId();
+      $("#formTitle").value = item.title || "";
+      $("#formStatus").value = item.status || "pendente";
+      $("#formUrl").value = item.url || "";
+      $("#formRent").value = item.rent ?? "";
+      $("#formCondo").value = item.condo ?? "";
+      $("#formIptu").value = item.iptu ?? "";
+      $("#formArea").value = item.area ?? "";
+      $("#formRooms").value = item.rooms ?? "";
+      $("#formBathrooms").value = item.bathrooms ?? "";
+      $("#formParking").value = item.parking ?? "";
+      $("#formCity").value = item.city || "";
+      $("#formNeighborhood").value = item.neighborhood || "";
+      $("#formType").value = item.type || "";
+      $("#formAddress").value = item.address || "";
+      $("#formFeatures").value = item.features || "";
+      $("#formDescription").value = item.description || "";
+
+      $("#btnDelete").hidden = !properties.some((property) => property.id === item.id);
+      elements.modal.classList.add("is-open");
+    }
+
+    function closeModal() {
+      elements.modal.classList.remove("is-open");
+    }
+
+    function saveForm(event) {
+      event.preventDefault();
+
+      const item = {
+        id: $("#formId").value || createId(),
+        title: $("#formTitle").value.trim(),
+        status: $("#formStatus").value,
+        url: $("#formUrl").value.trim(),
+        rent: toNullableNumber($("#formRent").value),
+        condo: toNullableNumber($("#formCondo").value),
+        iptu: toNullableNumber($("#formIptu").value),
+        area: toNullableNumber($("#formArea").value),
+        rooms: toNullableNumber($("#formRooms").value),
+        bathrooms: toNullableNumber($("#formBathrooms").value),
+        parking: toNullableNumber($("#formParking").value),
+        city: $("#formCity").value.trim(),
+        neighborhood: $("#formNeighborhood").value.trim(),
+        type: $("#formType").value.trim(),
+        address: $("#formAddress").value.trim(),
+        features: $("#formFeatures").value.trim(),
+        description: $("#formDescription").value.trim()
+      };
+
+      upsertProperty(item);
+      saveData();
+      renderAll();
+      closeModal();
+      showToast("Imóvel salvo com sucesso.");
+    }
+
+    function deleteCurrentProperty() {
+      const id = $("#formId").value;
+      if (!id) return;
+
+      const confirmed = confirm("Excluir este imóvel do comparativo?");
+      if (!confirmed) return;
+
+      properties = properties.filter((item) => item.id !== id);
+      saveData();
+      renderAll();
+      closeModal();
+      showToast("Imóvel excluído.");
+    }
+
+    function clearFilters() {
+      elements.searchInput.value = "";
+      elements.cityFilter.value = "";
+      elements.roomsFilter.value = "";
+      elements.maxTotalInput.value = "";
+      elements.statusFilter.value = "";
+      elements.qualityFilter.value = "";
+      renderAll();
+    }
+
+    function exportCsv() {
+      const headers = [
+        "ID",
+        "Título",
+        "Link",
+        "Tipo",
+        "Cidade",
+        "Bairro",
+        "Endereço",
+        "Locação",
+        "Condomínio",
+        "IPTU",
+        "Total",
+        "Área",
+        "R$/m²",
+        "Quartos",
+        "Banheiros",
+        "Vagas",
+        "Características",
+        "Descrição",
+        "Status"
+      ];
+
+      const rows = filteredProperties.map((item) => [
+        item.id,
+        item.title,
+        item.url,
+        item.type,
+        item.city,
+        item.neighborhood,
+        item.address,
+        item.rent ?? "",
+        item.condo ?? "",
+        item.iptu ?? "",
+        getTotal(item) ?? "",
+        item.area ?? "",
+        getPriceM2(item) ?? "",
+        item.rooms ?? "",
+        item.bathrooms ?? "",
+        item.parking ?? "",
+        item.features,
+        item.description,
+        item.status
+      ]);
+
+      const csv = [headers, ...rows]
+        .map((row) => row.map(csvEscape).join(";"))
+        .join("\n");
+
+      downloadFile("comparativo-alugueis.csv", "\uFEFF" + csv, "text/csv;charset=utf-8");
+    }
+
+    function exportJson() {
+      downloadFile(
+        "comparativo-alugueis.json",
+        JSON.stringify(filteredProperties, null, 2),
+        "application/json;charset=utf-8"
+      );
+    }
+
+    function downloadFile(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function createEmptyProperty() {
+      return {
+        id: createId(),
+        url: "",
+        title: "",
+        type: "",
+        city: "",
+        neighborhood: "",
+        address: "",
+        rent: null,
+        condo: null,
+        area: null,
+        rooms: null,
+        bathrooms: null,
+        parking: null,
+        features: "",
+        description: "",
+        status: "pendente"
+      };
+    }
+
+    function getTotal(item) {
+      const rent  = toNullableNumber(item.rent);
+      const condo = toNullableNumber(item.condo);
+      const iptu  = toNullableNumber(item.iptu);
+      if (rent === null && condo === null) return null;
+      return (rent || 0) + (condo || 0) + (iptu || 0);
+    }
+
+    function getPriceM2(item) {
+      const total = getTotal(item);
+      const area = toNullableNumber(item.area);
+
+      if (total === null || !area) return null;
+      return total / area;
+    }
+
+    function formatBRL(value) {
+      return Number(value).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function formatMaybeBRL(value) {
+      return value === null || value === undefined || value === "" ? "—" : formatBRL(value);
+    }
+
+    function formatMaybeArea(value) {
+      return value === null || value === undefined || value === "" ? "—" : `${Math.round(Number(value)).toLocaleString("pt-BR")} m²`;
+    }
+
+    function formatMaybeNumber(value) {
+      return value === null || value === undefined || value === "" ? "—" : String(value);
+    }
+
+    function statusBadge(status) {
+      if (status === "ok") return '<span class="badge ok" title="Dados do anúncio conferidos manualmente">✓ Conferido</span>';
+      return '<span class="badge warn" title="Aguardando conferência dos dados do anúncio">⚠ A conferir</span>';
+    }
+
+    function parseLinks(text) {
+      return text
+        .split(/[\n;]+/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .filter((item) => item.startsWith("http"));
+    }
+
+    function getIdFromUrl(url) {
+      const clean = url.split("?")[0].replace(/\/$/, "");
+      const match = clean.match(/\/(\d+)$/);
+      return match ? match[1] : createId();
+    }
+
+    function parseBRL(text) {
+      if (!text) return null;
+      const cleaned = String(text)
+        .replace(/[^\d,.-]/g, "")
+        .replace(/\./g, "")
+        .replace(",", ".");
+
+      const value = Number(cleaned);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function normalizeText(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    function toNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function toNullableNumber(value) {
+      if (value === "" || value === null || value === undefined) return null;
+
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function titleCase(text) {
+      return String(text || "")
+        .split(" ")
+        .filter(Boolean)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    function unique(list) {
+      return [...new Set(list)];
+    }
+
+    function createId() {
+      return `imovel-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+
+    function showToast(message) {
+      elements.toast.textContent = message;
+      elements.toast.classList.add("show");
+
+      clearTimeout(showToast.timeout);
+      showToast.timeout = setTimeout(() => {
+        elements.toast.classList.remove("show");
+      }, 4200);
+    }
+
+    // ─── Value tooltip (body-level, avoids table overflow clipping) ──────────
+    const _vt = (() => { const el = document.createElement('div'); el.className = 'value-tip'; document.body.appendChild(el); return el; })();
+
+    function showValueTip(e, rent, condo, iptu, total) {
+      const fmt = (v) => v !== null && v !== undefined ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
+      _vt.innerHTML = `
+        <div class="value-tip-row"><span>Locação</span><strong>${fmt(rent)}</strong></div>
+        <div class="value-tip-row"><span>Condomínio</span><strong>${fmt(condo)}</strong></div>
+        <div class="value-tip-row"><span>IPTU</span><strong>${fmt(iptu)}</strong></div>
+        <hr class="value-tip-sep">
+        <div class="value-tip-total"><span>Total</span><strong>${fmt(total)}</strong></div>
+      `;
+      _posValueTip(e);
+      _vt.classList.add('visible');
+    }
+
+    function hideValueTip() { _vt.classList.remove('visible'); }
+
+    function _posValueTip(e) {
+      const r   = e.target.getBoundingClientRect();
+      const tipW = 210;
+      let left = r.left + r.width / 2 - tipW / 2;
+      let top  = r.top - _vt.offsetHeight - 8;
+      if (left < 8) left = 8;
+      if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+      if (top < 8) top = r.bottom + 6;
+      _vt.style.left  = left + 'px';
+      _vt.style.top   = top  + 'px';
+      _vt.style.width = tipW + 'px';
+    }
+  </script>
+</body>
+</html>
