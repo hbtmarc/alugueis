@@ -922,111 +922,173 @@
       }
     }
 
+    /* ── Mobile Cards ─────────────────────────────────────── */
     .cards-mobile {
       display: none;
-      margin-top: 10px;
+      flex-direction: column;
       gap: 12px;
+      margin-top: 12px;
     }
 
     .property-card {
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 16px;
+      overflow: hidden;
       box-shadow: var(--shadow-sm);
     }
 
-    .property-card-head {
+    /* Rank accent bar for top 3 */
+    .pc-rank-bar {
+      height: 3px;
+      background: var(--primary);
+    }
+    .pc-rank-bar.rank-2 { background: #64748b; }
+    .pc-rank-bar.rank-3 { background: #92400e; }
+
+    .pc-body {
+      padding: 14px 16px;
+    }
+
+    /* Header row: title + badges */
+    .pc-head {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
-    .property-card h4 {
+    .pc-title {
       margin: 0;
       font-size: 14px;
-      font-weight: 800;
-      line-height: 1.3;
-      flex: 1 1 auto;
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+      flex: 1 1 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
-    .card-location {
+    .pc-badges {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    /* Price hero */
+    .pc-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .pc-price-total {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--good);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .pc-price-label {
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 10px;
+      font-weight: 500;
     }
 
-    .card-total {
-      background: var(--surface-2);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .card-total-label {
+    .pc-score-pill {
+      margin-left: auto;
       font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-2);
+      border: 1px solid rgba(37,99,235,0.15);
+      border-radius: 99px;
+      padding: 2px 8px;
+      white-space: nowrap;
     }
 
-    .card-total-value {
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--good);
-      letter-spacing: -0.02em;
-    }
-
-    .card-meta {
+    /* Cost breakdown inline row */
+    .pc-breakdown {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin: 8px 0;
-    }
-
-    .card-values {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin: 10px 0;
-    }
-
-    .mini-value {
-      padding: 9px 10px;
-      background: var(--surface-2);
-      border-radius: 10px;
-      border: 1px solid var(--line);
-    }
-
-    .mini-value span {
-      display: block;
-      font-size: 10px;
+      align-items: center;
+      gap: 4px 10px;
+      font-size: 11.5px;
       color: var(--muted);
-      font-weight: 800;
-      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
     }
 
-    .mini-value strong {
-      display: block;
-      margin-top: 3px;
+    .pc-breakdown strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .pc-bd-sep {
+      color: var(--line);
       font-size: 13px;
     }
 
-    .card-actions {
+    /* Specs chips */
+    .pc-specs {
       display: flex;
-      gap: 8px;
-      margin-top: 10px;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
     }
 
-    .card-actions .btn {
-      flex: 1;
+    .pc-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* Location row */
+    .pc-location {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 14px;
+    }
+
+    .pc-location-main {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .pc-location-dist {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Actions */
+    .pc-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .pc-actions .btn {
+      justify-content: center;
+      width: 100%;
     }
 
     @media (max-width: 1080px) {
@@ -1040,42 +1102,94 @@
     }
 
     @media (max-width: 720px) {
+      /* Topbar */
       .topbar-inner {
-        padding: 10px 14px;
-        gap: 8px;
+        padding: 10px 16px;
+        flex-wrap: nowrap;
       }
 
       .nav-actions {
-        flex-wrap: wrap;
-        width: 100%;
+        gap: 6px;
+        flex-shrink: 0;
       }
 
-      .nav-actions .btn {
-        flex: 1 1 auto;
-        min-width: 0;
-        font-size: 12px;
-        padding: 8px 10px;
+      /* Hide export buttons on mobile — accessible via export in toolbar area */
+      #btnExportCsv,
+      #btnExportJson {
+        display: none;
       }
 
-      .btn-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #btnNew {
+        padding: 9px 14px;
+        font-size: 13px;
+      }
 
+      /* Layout */
       .container {
-        padding: 14px 12px 40px;
+        padding: 14px 14px 56px;
       }
 
+      /* Input panel */
+      .ip-section {
+        padding: 14px 16px;
+      }
+
+      .ip-input-row {
+        flex-direction: column;
+      }
+
+      .ip-input-row textarea {
+        min-height: 60px;
+      }
+
+      .ip-btn-col {
+        flex-direction: row;
+        gap: 8px;
+      }
+
+      .ip-btn-col .btn {
+        flex: 1;
+      }
+
+      /* Stats */
       .stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 8px;
+        margin-top: 14px;
       }
 
+      .stat-card {
+        padding: 13px 14px;
+      }
+
+      .stat-value {
+        font-size: 17px;
+      }
+
+      /* Toolbar */
       .toolbar {
         gap: 8px;
+        padding: 14px 16px;
       }
 
       .toolbar .field {
         flex: 1 1 calc(50% - 8px);
       }
 
+      /* Table → cards */
+      .table-wrap { display: none; }
+
+      .cards-mobile {
+        display: flex;
+      }
+
+      .panel-title {
+        padding: 14px 16px;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      /* Modal */
       .form-grid {
         grid-template-columns: 1fr;
       }
@@ -1085,39 +1199,16 @@
         grid-column: auto;
       }
 
-      .table-wrap {
-        display: none;
-      }
-
-      .cards-mobile {
-        display: grid;
-      }
-
-      .panel-title {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .card-values {
-        grid-template-columns: repeat(2, 1fr);
+      .modal-card {
+        padding: 20px 16px;
       }
     }
 
     @media (max-width: 390px) {
-      .nav-actions .btn .btn-label {
-        display: none;
-      }
+      .pc-price-total { font-size: 21px; }
 
       .stats {
         grid-template-columns: 1fr 1fr;
-      }
-
-      .hero-card .notice {
-        font-size: 11px;
       }
     }
   </style>
@@ -2045,57 +2136,91 @@
     }
 
     function renderMobileCards(list) {
+      // Compute top-3 scored items for rank badges
+      const scoredIds = [...list]
+        .filter(i => getValueScore(i) !== null)
+        .sort((a, b) => getValueScore(b) - getValueScore(a))
+        .slice(0, 3)
+        .map(i => i.id);
+
       elements.cardsMobile.innerHTML = list.map((item) => {
         const total   = getTotal(item);
         const priceM2 = getPriceM2(item);
+        const score   = getValueScore(item);
         const loc     = [item.neighborhood, item.city].filter(Boolean).join(' · ');
         const dInfo   = distanceInfo(item);
         const distTag = dInfo ? [
-          dInfo.distCity !== null ? `~${dInfo.distCity.toFixed(1)} km do centro` : null,
-          (item.city !== 'Belo Horizonte' && dInfo.distBH !== null) ? `~${dInfo.distBH.toFixed(1)} km de BH` : null
+          dInfo.distCity !== null ? `~${dInfo.distCity.toFixed(1)} km do centro` : null,
+          (item.city !== 'Belo Horizonte' && dInfo.distBH !== null) ? `~${dInfo.distBH.toFixed(1)} km de BH` : null
         ].filter(Boolean).join(' · ') : '';
+
         const r = item.rooms     ?? '—';
         const b = item.bathrooms ?? '—';
         const v = item.parking   ?? '—';
 
+        const rankIdx = scoredIds.indexOf(item.id); // -1, 0, 1, 2
+        const rankBar = rankIdx >= 0
+          ? `<div class="pc-rank-bar rank-${rankIdx + 1}"></div>`
+          : '';
+
+        const scorePill = score !== null
+          ? `<span class="pc-score-pill">${Math.round(score)} pts</span>`
+          : '';
+
+        // Cost breakdown items
+        const bdItems = [
+          { label: 'Locação',  val: item.rent  },
+          { label: 'Condo',    val: item.condo },
+          { label: 'IPTU',     val: item.iptu  },
+        ];
+        const bdHtml = bdItems.map((bd, i) => {
+          const fVal = bd.val != null
+            ? `R$\u00a0${bd.val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+            : '—';
+          return (i > 0 ? '<span class="pc-bd-sep">·</span>' : '') +
+            `<span>${escapeHtml(bd.label)} <strong>${fVal}</strong></span>`;
+        }).join('');
+
+        // Spec chips (only non-null)
+        const chips = [
+          item.area != null ? `📐 ${Math.round(item.area)} m²` : null,
+          (r !== '—' || b !== '—' || v !== '—') ? `🛏 ${r}Q · ${b}B · ${v}V` : null,
+          priceM2 !== null ? `💰 ${Math.round(priceM2).toLocaleString('pt-BR')}/m²` : null,
+        ].filter(Boolean).map(c => `<span class="pc-chip">${escapeHtml(c)}</span>`).join('');
+
         return `
           <article class="property-card">
-            <div class="property-card-head">
-              <h4>${escapeHtml(item.title || 'Imóvel sem título')}</h4>
-              <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
-                ${statusBadge(item.status)}
-                ${qualidadeBadge(item)}
+            ${rankBar}
+            <div class="pc-body">
+
+              <div class="pc-head">
+                <h4 class="pc-title">${escapeHtml(item.title || 'Imóvel sem título')}</h4>
+                <div class="pc-badges">
+                  ${statusBadge(item.status)}
+                  ${qualidadeBadge(item)}
+                </div>
               </div>
-            </div>
 
-            <div class="card-location">
-              📍 ${escapeHtml(loc || 'Localização a conferir')}
-              ${distTag ? `<br><span class="dist-tag">${escapeHtml(distTag)}</span>` : ''}
-            </div>
-
-            <div class="card-total">
-              <div class="card-total-label">Total mensal</div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <div class="card-total-value">${formatMaybeBRL(total)}</div>
-                <button class="btn-detail-toggle" id="cdtbtn-${escapeAttr(item.id)}" onclick="toggleCardDetail('${escapeAttr(item.id)}')" aria-expanded="false">Ver detalhes</button>
+              <div class="pc-price-row">
+                <span class="pc-price-total">${total != null ? total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</span>
+                <span class="pc-price-label">/mês</span>
+                ${scorePill}
               </div>
-            </div>
 
-            <div class="card-detail" id="cdetail-${escapeAttr(item.id)}" hidden>
-              <div class="mini-value"><span>Locação</span><strong>${formatMaybeBRL(item.rent)}</strong></div>
-              <div class="mini-value"><span>Condomínio</span><strong>${formatMaybeBRL(item.condo)}</strong></div>
-              <div class="mini-value"><span>IPTU</span><strong>${formatMaybeBRL(item.iptu)}</strong></div>
-            </div>
+              <div class="pc-breakdown">${bdHtml}</div>
 
-            <div class="card-values">
-              <div class="mini-value"><span>Área</span><strong>${item.area !== null && item.area !== undefined ? Math.round(item.area) + ' m²' : '—'}</strong></div>
-              <div class="mini-value"><span>R$/m²</span><strong>${priceM2 !== null ? Math.round(priceM2).toLocaleString('pt-BR') + '/m²' : '—'}</strong></div>
-              <div class="mini-value"><span>Cômodos</span><strong>${r}Q · ${b}B · ${v}V</strong></div>
-            </div>
+              ${chips ? `<div class="pc-specs">${chips}</div>` : ''}
 
-            <div class="card-actions">
-              <a class="btn btn-ghost btn-small" href="${escapeAttr(item.url || '#')}" target="_blank" rel="noopener">Ver anúncio ↗</a>
-              <button class="btn btn-secondary btn-small" onclick="editProperty('${escapeAttr(item.id)}')">✏ Editar</button>
+              <div class="pc-location">
+                <span class="pc-location-main">📍 ${escapeHtml(loc || 'Localização a conferir')}</span>
+                ${distTag ? `<span class="pc-location-dist">${escapeHtml(distTag)}</span>` : ''}
+              </div>
+
+              <div class="pc-actions">
+                <a class="btn btn-ghost btn-small" href="${escapeAttr(item.url || '#')}" target="_blank" rel="noopener">Ver anúncio ↗</a>
+                <button class="btn btn-secondary btn-small" onclick="editProperty('${escapeAttr(item.id)}')">✏ Editar</button>
+              </div>
+
             </div>
           </article>
         `;
