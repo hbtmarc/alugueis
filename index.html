@@ -590,6 +590,16 @@
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 30px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      cursor: pointer;
+    }
+
     .main-grid {
       margin-top: 18px;
     }
@@ -742,6 +752,36 @@
 
     /* CB Score bar */
     .score-cell { vertical-align: middle; }
+    /* Rows with CB Score < 50 are visually de-emphasised */
+    .score-low { opacity: 0.38; }
+    .score-low:hover { opacity: 0.75; transition: opacity 0.15s; }
+
+    /* ── View modal ─────────────────────────────────────────────── */
+    #viewModal .modal-card { max-width: 620px; }
+    .vm-body { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 116px); padding-right: 2px; }
+    .vm-section { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+    .vm-section-title { background: var(--surface-2); padding: 7px 13px; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); border-bottom: 1px solid var(--line); }
+    /* flex-wrap: items naturally fill rows, no ghost cells when count isn't a multiple of 3 */
+    .vm-grid { display: flex; flex-wrap: wrap; background: var(--surface); margin-bottom: -1px; }
+    .vm-field {
+      flex: 1 1 160px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      box-sizing: border-box;
+      min-width: 140px;
+    }
+    .vm-field.span-full { flex: 1 1 100%; border-right: none; }
+    .vm-field:last-child { border-right: none; }
+    .vm-label { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+    .vm-value { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.4; overflow-wrap: break-word; word-break: break-word; white-space: normal; }
+    .vm-value.money { font-weight: 700; color: var(--green); font-size: 14px; }
+    .vm-value.total { font-size: 18px; font-weight: 800; color: var(--text); }
+    .vm-text { padding: 10px 14px; font-size: 13px; color: var(--text-2); line-height: 1.65; white-space: pre-wrap; }
+    #viewModal tr.score-low { opacity: 1; }
     .score-bar-wrap { display: flex; align-items: center; gap: 6px; }
     .score-bar {
       flex: 1;
@@ -1491,6 +1531,7 @@
             <option value="visita">Visita agendada</option>
             <option value="aprovado">Aprovado</option>
             <option value="descartado">Descartado</option>
+            <option value="cb-baixo">📉 CB Score baixo</option>
           </select>
         </div>
 
@@ -1681,6 +1722,7 @@
                   <option value="visita">Visita agendada 📅</option>
                   <option value="aprovado">Aprovado ✅</option>
                   <option value="descartado">Descartado ❌</option>
+                  <option value="cb-baixo">📉 CB Score baixo</option>
                 </select>
               </div>
               <div class="field">
@@ -1760,6 +1802,23 @@
             <button class="btn btn-danger" type="button" id="btnDelete">Excluir</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- View-only modal -->
+    <div class="modal" id="viewModal" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <h3 id="viewModalTitle">Detalhes do imóvel</h3>
+            <p class="muted">Visualização — <a id="viewModalLink" href="#" target="_blank" rel="noopener" style="color:var(--accent)">Ver anúncio ↗</a></p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn btn-secondary btn-small" id="btnViewEdit" style="display:none">✏ Editar</button>
+            <button class="modal-close-btn" id="btnCloseViewModal" aria-label="Fechar" title="Fechar">&times;</button>
+          </div>
+        </div>
+        <div class="vm-body" id="viewModalBody"></div>
       </div>
     </div>
 
@@ -2044,6 +2103,15 @@
     function init() {
       setupHashRoute();
       loadData();
+      // One-time migration: auto-tag existing low-score properties with no decision
+      let migrated = 0;
+      properties.forEach(p => {
+        if (!p.decisionStatus) {
+          const sc = getValueScore(p);
+          if (sc !== null && sc < 50) { p.decisionStatus = 'cb-baixo'; migrated++; }
+        }
+      });
+      if (migrated) saveData();
       loadSettings();
       bindEvents();
       renderLinkList();
@@ -2062,6 +2130,12 @@
       $("#btnSeed").addEventListener("click", restoreSeed);
       $("#btnNew").addEventListener("click", () => openModal(createEmptyProperty()));
       $("#btnCloseModal").addEventListener("click", closeModal);
+      $("#btnCloseViewModal").addEventListener("click", closeViewModal);
+      $("#btnViewEdit").addEventListener("click", () => {
+        const id = $("#btnViewEdit").dataset.id;
+        closeViewModal();
+        editProperty(id);
+      });
       $("#btnDelete").addEventListener("click", deleteCurrentProperty);
       $("#btnExportCsv").addEventListener("click", exportCsv);
       $("#btnExportJson").addEventListener("click", exportJson);
@@ -2425,9 +2499,10 @@
           (item.city !== "Belo Horizonte" && dInfo.distBH !== null) ? `~${dInfo.distBH.toFixed(1)} km de BH` : null
         ].filter(Boolean).join(" · ") : "";
 
+        const isLowScore = score !== null && score < 50;
         return `
-          <tr>
-            <td>
+          <tr${isLowScore ? ' class="score-low"' : ''} onclick="openViewModal('${escapeAttr(item.id)}')" style="cursor:pointer" title="Clique para detalhes">
+            <td onclick="event.stopPropagation()">
               <a class="property-link" href="${escapeAttr(item.url || "#")}" target="_blank" rel="noopener">Ver anúncio ↗</a>
             </td>
             <td class="money total">
@@ -2447,7 +2522,7 @@
               ${decisionBadge(item)}
               ${item.riskLevel ? riskBadge(item) : ''}
             </td>
-            <td style="text-align:center">
+            <td style="text-align:center" onclick="event.stopPropagation()">
               <button class="btn-icon" onclick="editProperty('${escapeAttr(item.id)}')" title="Editar imóvel">✏</button>
             </td>
           </tr>
@@ -2520,7 +2595,7 @@
         ].filter(Boolean).map(c => `<span class="pc-chip">${escapeHtml(c)}</span>`).join('');
 
         return `
-          <article class="property-card">
+          <article class="property-card${score !== null && score < 50 ? ' score-low' : ''}" onclick="openViewModal('${escapeAttr(item.id)}')" style="cursor:pointer">
             ${rankBar}
             <div class="pc-body">
 
@@ -2546,7 +2621,7 @@
                 ${distTag ? `<span class="pc-location-dist">${escapeHtml(distTag)}</span>` : ''}
               </div>
 
-              <div class="pc-actions">
+              <div class="pc-actions" onclick="event.stopPropagation()">
                 <a class="btn btn-ghost btn-small" href="${escapeAttr(item.url || '#')}" target="_blank" rel="noopener">Ver anúncio ↗</a>
                 <button class="btn btn-secondary btn-small" onclick="editProperty('${escapeAttr(item.id)}')">✏ Editar</button>
               </div>
@@ -2777,10 +2852,14 @@
           if (existing) {
             const incoming = { ...parsed };
             // Use force-merge when data came from __NEXT_DATA__ (authoritative source)
-            // to correct any previously misread values (e.g. condo fetched wrong by old parser).
             const merged = usedNextData
               ? forceMergeDataFields(existing, incoming)
               : smartMerge(existing, incoming);
+            // Auto-tag CB Score baixo if no decision yet
+            if (!merged.decisionStatus) {
+              const sc = getValueScore(merged);
+              if (sc !== null && sc < 50) merged.decisionStatus = 'cb-baixo';
+            }
             const changed  = JSON.stringify(merged) !== JSON.stringify(existing);
             if (changed) {
               properties[properties.indexOf(existing)] = merged;
@@ -2792,6 +2871,11 @@
           } else {
             const fallback = buildFallbackProperty(url);
             const merged   = smartMerge(fallback, parsed);
+            // Auto-tag CB Score baixo if no decision yet
+            if (!merged.decisionStatus) {
+              const sc = getValueScore(merged);
+              if (sc !== null && sc < 50) merged.decisionStatus = 'cb-baixo';
+            }
             properties.push(merged);
             enriched++;
             setLinkStatus(url, "ls-ok", "✓ Adicionado");
@@ -3404,6 +3488,137 @@
       document.body.style.overflow = "";
     }
 
+    function openViewModal(id) {
+      const item = properties.find(p => p.id === id);
+      if (!item) return;
+
+      const total   = getTotal(item);
+      const priceM2 = getPriceM2(item);
+      const score   = getValueScore(item);
+      const dInfo   = distanceInfo(item);
+
+      // Only render a field when value is present
+      const vField = (label, rawVal, spanFull) => {
+        if (rawVal == null || rawVal === '') return '';
+        const cls = spanFull ? ' span-full' : '';
+        return `<div class="vm-field${cls}"><span class="vm-label">${escapeHtml(label)}</span><span class="vm-value">${escapeHtml(String(rawVal))}</span></div>`;
+      };
+      const mField = (label, val) => {
+        if (val == null) return '';
+        const fmt = `R$\u00a0${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `<div class="vm-field"><span class="vm-label">${escapeHtml(label)}</span><span class="vm-value money">${fmt}</span></div>`;
+      };
+
+      const totalFmt = total != null
+        ? total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : '—';
+      const priceM2Fmt = priceM2 != null
+        ? `R$\u00a0${Math.round(priceM2).toLocaleString('pt-BR')}/m²`
+        : null;
+
+      const distTags = dInfo ? [
+        dInfo.distCity !== null ? `~${dInfo.distCity.toFixed(1)} km do centro` : null,
+        (item.city !== 'Belo Horizonte' && dInfo.distBH !== null) ? `~${dInfo.distBH.toFixed(1)} km de BH` : null,
+      ].filter(Boolean).join(' · ') : '';
+
+      const decisionLabels = {
+        'analisando': 'Analisando', 'favorito': 'Favorito ⭐', 'visita': 'Visita agendada 📅',
+        'aprovado': 'Aprovado ✅', 'descartado': 'Descartado ❌', 'cb-baixo': '📉 CB Score baixo',
+      };
+      const riskLabels = { 'baixo': 'Baixo 🟢', 'medio': 'Médio 🟡', 'alto': 'Alto 🔴' };
+      const guarLabels = { 'fiador': 'Fiador', 'seguro': 'Seguro fiança', 'caucao': 'Caução', 'titulo': 'Título de capitalização' };
+      const furnLabels = { 'nenhuma': 'Nenhuma (mobiliado)', 'baixa': 'Baixa', 'media': 'Média', 'alta': 'Alta (vazio)' };
+
+      const scorePart = score !== null
+        ? `<span class="pc-score-pill" style="font-size:12px">${score.toFixed(1)} pts</span>` : '';
+
+      const sections = [];
+
+      // Financeiro — Total as full-width hero, rest in groups of 3
+      const finRows = [
+        `<div class="vm-field span-full" style="background:var(--surface-2)"><span class="vm-label">Total/mês</span><span class="vm-value money total">${totalFmt}</span></div>`,
+        mField('Locação', item.rent),
+        mField('Condomínio', item.condo),
+        mField('IPTU', item.iptu),
+        mField('Seguro incêndio', item.monthlyInsurance),
+        mField('Taxas fixas', item.fixedFees),
+        priceM2Fmt ? `<div class="vm-field span-full"><span class="vm-label">R$/m²</span><span class="vm-value">${priceM2Fmt}</span></div>` : '',
+      ].filter(Boolean).join('');
+      sections.push(`<div class="vm-section"><div class="vm-section-title">💰 Financeiro</div><div class="vm-grid">${finRows}</div></div>`);
+
+      // Características
+      const specRows = [
+        vField('Área', item.area != null ? Math.round(item.area) + ' m²' : null),
+        vField('Quartos', item.rooms),
+        vField('Banheiros', item.bathrooms),
+        vField('Vagas', item.parking),
+        vField('Tipo', item.type),
+        item.hasLaundryArea ? vField('Área de serviço', 'Sim ✅') : '',
+      ].filter(Boolean).join('');
+      if (specRows) sections.push(`<div class="vm-section"><div class="vm-section-title">🏠 Características</div><div class="vm-grid">${specRows}</div></div>`);
+
+      // Localização
+      const locRows = [
+        vField('Bairro', item.neighborhood),
+        vField('Cidade', item.city),
+        vField('Distâncias', distTags || null),
+        vField('Endereço', item.address, true),
+      ].filter(Boolean).join('');
+      if (locRows) sections.push(`<div class="vm-section"><div class="vm-section-title">📍 Localização</div><div class="vm-grid">${locRows}</div></div>`);
+
+      // Decisão
+      const decRows = [
+        vField('Status', item.decisionStatus ? (decisionLabels[item.decisionStatus] || item.decisionStatus) : null),
+        vField('Risco', item.riskLevel ? (riskLabels[item.riskLevel] || item.riskLevel) : null),
+        vField('Garantia', item.guaranteeType ? (guarLabels[item.guaranteeType] || item.guaranteeType) : null),
+        vField('Custo inicial', item.estimatedInitialCost != null ? 'R$ ' + Math.round(item.estimatedInitialCost).toLocaleString('pt-BR') : null),
+        vField('Não recuperável', item.nonRecoverableInitialCost != null ? 'R$ ' + Math.round(item.nonRecoverableInitialCost).toLocaleString('pt-BR') : null),
+        vField('Mobília', item.furnishingNeedLevel ? (furnLabels[item.furnishingNeedLevel] || item.furnishingNeedLevel) : null),
+        item.rejectionReason ? `<div class="vm-field span-full"><span class="vm-label">Observações</span><span class="vm-value">${escapeHtml(item.rejectionReason)}</span></div>` : '',
+      ].filter(Boolean).join('');
+      if (decRows) sections.push(`<div class="vm-section"><div class="vm-section-title">🧮 Decisão</div><div class="vm-grid">${decRows}</div></div>`);
+
+      // Qualidade
+      const qualRows = [
+        vField('Ventilação', item.ventilationScore != null ? item.ventilationScore + '/5' : null),
+        vField('Iluminação', item.naturalLightScore != null ? item.naturalLightScore + '/5' : null),
+        vField('Dist. trabalho', item.commuteDistanceKm != null ? item.commuteDistanceKm + ' km' : null),
+        vField('Tempo deslocam.', item.commuteTimeMin != null ? item.commuteTimeMin + ' min' : null),
+      ].filter(Boolean).join('');
+      if (qualRows) sections.push(`<div class="vm-section"><div class="vm-section-title">⭐ Qualidade & Deslocamento</div><div class="vm-grid">${qualRows}</div></div>`);
+
+      if (item.features) {
+        sections.push(`<div class="vm-section"><div class="vm-section-title">🔍 Características</div><div class="vm-text">${escapeHtml(item.features)}</div></div>`);
+      }
+      if (item.description) {
+        sections.push(`<div class="vm-section"><div class="vm-section-title">📝 Descrição</div><div class="vm-text">${escapeHtml(item.description)}</div></div>`);
+      }
+
+      // Badge row
+      sections.unshift(`<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        ${statusBadge(item.status)} ${decisionBadge(item)} ${item.riskLevel ? riskBadge(item) : ''} ${scorePart}
+      </div>`);
+
+      $("#viewModalTitle").textContent = item.title || 'Imóvel sem título';
+      const link = $("#viewModalLink");
+      link.href = item.url || '#';
+      link.style.display = item.url ? '' : 'none';
+      const editBtn = $("#btnViewEdit");
+      editBtn.hidden = false;
+      editBtn.dataset.id = item.id;
+
+      $("#viewModalBody").innerHTML = sections.join('');
+      $("#viewModal").classList.add("is-open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeViewModal() {
+      $("#viewModal").classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+
+    window.openViewModal = openViewModal;
+
     function saveForm(event) {
       event.preventDefault();
 
@@ -3441,6 +3656,12 @@
         hasLaundryArea: $("#formHasLaundryArea").checked,
         rejectionReason: $("#formRejectionReason").value.trim()
       };
+
+      // Auto-tag low CB Score when no decision has been set yet
+      if (!item.decisionStatus) {
+        const sc = getValueScore(item);
+        if (sc !== null && sc < 50) item.decisionStatus = 'cb-baixo';
+      }
 
       upsertProperty(item);
       saveData();
@@ -3641,11 +3862,12 @@
     function decisionBadge(item) {
       const v = item.decisionStatus || "";
       const MAP = {
-        analisando:  ["analisando", "🔍"],
-        favorito:    ["dec-favorito",  "⭐ Favorito"],
-        visita:      ["dec-visita",    "📅 Visita"],
-        aprovado:    ["dec-aprovado",  "✅ Aprovado"],
-        descartado:  ["dec-descartado","❌ Descartado"]
+        analisando:   ["analisando",    "🔍"],
+        favorito:     ["dec-favorito",  "⭐ Favorito"],
+        visita:       ["dec-visita",    "📅 Visita"],
+        aprovado:     ["dec-aprovado",  "✅ Aprovado"],
+        descartado:   ["dec-descartado","❌ Descartado"],
+        "cb-baixo":   ["dec-descartado","📉 Score baixo"],
       };
       if (!v || !MAP[v]) return `<span class="badge miss" title="Sem decisão">—</span>`;
       const [cls, label] = MAP[v];
