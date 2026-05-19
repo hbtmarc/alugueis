@@ -757,31 +757,67 @@
     .score-low:hover { opacity: 0.75; transition: opacity 0.15s; }
 
     /* ── View modal ─────────────────────────────────────────────── */
-    #viewModal .modal-card { max-width: 620px; }
-    .vm-body { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 116px); padding-right: 2px; }
-    .vm-section { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+    #viewModal .modal-card {
+      width: min(860px, 100%);
+      max-height: 94vh;
+      padding: 18px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #viewModal .modal-head {
+      background: var(--surface);
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+    }
+    #viewModal .modal-head h3 { line-height: 1.28; }
+    .vm-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      padding-right: 2px;
+      padding-bottom: 2px;
+    }
+    .vm-section { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
     .vm-section-title { background: var(--surface-2); padding: 7px 13px; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); border-bottom: 1px solid var(--line); }
-    /* flex-wrap: items naturally fill rows, no ghost cells when count isn't a multiple of 3 */
-    .vm-grid { display: flex; flex-wrap: wrap; background: var(--surface); margin-bottom: -1px; }
+    .vm-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      padding: 8px;
+      background: var(--surface);
+    }
     .vm-field {
-      flex: 1 1 160px;
-      padding: 10px 14px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      border-bottom: 1px solid var(--line);
-      border-right: 1px solid var(--line);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-2);
       box-sizing: border-box;
-      min-width: 140px;
+      min-width: 0;
     }
-    .vm-field.span-full { flex: 1 1 100%; border-right: none; }
-    .vm-field:last-child { border-right: none; }
+    .vm-field.span-full { grid-column: 1 / -1; }
     .vm-label { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
-    .vm-value { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.4; overflow-wrap: break-word; word-break: break-word; white-space: normal; }
+    .vm-value { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
     .vm-value.money { font-weight: 700; color: var(--green); font-size: 14px; }
     .vm-value.total { font-size: 18px; font-weight: 800; color: var(--text); }
-    .vm-text { padding: 10px 14px; font-size: 13px; color: var(--text-2); line-height: 1.65; white-space: pre-wrap; }
+    .vm-text { padding: 11px 13px; font-size: 13px; color: var(--text-2); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
     #viewModal tr.score-low { opacity: 1; }
+    @media (max-width: 860px) {
+      #viewModal .modal-card { width: min(94vw, 100%); }
+      .vm-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      #viewModal .modal-card { padding: 14px 14px 12px; }
+      .vm-grid { grid-template-columns: 1fr; gap: 7px; padding: 7px; }
+      .vm-field { padding: 9px 10px; }
+      .vm-label { white-space: normal; }
+    }
     .score-bar-wrap { display: flex; align-items: center; gap: 6px; }
     .score-bar {
       flex: 1;
